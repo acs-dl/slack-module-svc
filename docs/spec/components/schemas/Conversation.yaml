@@ -1,0 +1,27 @@
+allOf:
+  - $ref: "#/components/schemas/ConversationKey"
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - title
+          - members_amount
+          - id
+        properties:
+          id:
+            type: integer
+            format: int64
+            description: slack channel id
+            example: "666"
+          title:
+            type: string
+            description: slack channel title
+            example: "HELP SLACK API"
+          members_amount:
+            type: integer
+            format: int64
+            description: slack channel members amount
+            example: "10"
