@@ -2,10 +2,11 @@ package registrator
 
 import (
 	"context"
+	"time"
+
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"gitlab.com/distributed_lab/logan/v3"
-	"time"
 
 	"gitlab.com/distributed_lab/running"
 )

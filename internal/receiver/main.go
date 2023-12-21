@@ -3,6 +3,8 @@ package receiver
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/config"
@@ -14,7 +16,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/running"
-	"time"
 )
 
 const (
@@ -104,7 +105,6 @@ func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
 
 func (r *Receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	r.log.Infof("handling message with id `%s`", msg.RequestId)
-
 	err := validation.Errors{
 		"action": validation.Validate(msg.Action, validation.Required),
 	}.Filter()

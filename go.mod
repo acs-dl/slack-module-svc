@@ -1,6 +1,8 @@
 module github.com/acs-dl/slack-module-svc
 
-go 1.19
+go 1.21
+
+toolchain go1.21.5
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -12,6 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v1.5.2
 	github.com/slack-go/slack v0.12.3
+	gitlab.com/distributed_lab/ape v1.7.1
 	gitlab.com/distributed_lab/figure v2.1.2+incompatible
 	gitlab.com/distributed_lab/kit v1.11.2
 	gitlab.com/distributed_lab/logan v3.8.1+incompatible
@@ -19,12 +22,21 @@ require (
 )
 
 require (
+	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
+	github.com/getsentry/raven-go v0.2.0 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7 // indirect
+	gitlab.com/distributed_lab/lorem v0.2.0 // indirect
+)
+
+require (
+	github.com/acs-dl/auth-svc v0.0.0-20230922123331-e681d51de0be
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/getsentry/sentry-go v0.20.0 // indirect
-	github.com/go-chi/chi v4.1.2+incompatible // indirect
+	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect

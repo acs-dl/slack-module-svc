@@ -1,16 +1,16 @@
 package processor
 
 import (
+	"strconv"
+
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"strconv"
 )
 
 func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
-
 	return validation.Errors{
 		"user_id":  validation.Validate(msg.UserId, validation.Required),
 		"username": validation.Validate(msg.Username, validation.Required),
@@ -30,7 +30,7 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 func (p *processor) getUserFromAPI(slackID string) (*data.User, error) {
 	user, err := helpers.GetUser(p.pqueues.UserPQueue,
 		any(p.client.UserFromApi),
-		[]any{any(slackID)},
+		[]any{slackID},
 		pqueue.NormalPriority,
 	)
 	if err != nil {

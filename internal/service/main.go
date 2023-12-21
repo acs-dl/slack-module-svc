@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"sync"
+
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/receiver"
@@ -10,7 +12,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/service/api/handlers"
 	"github.com/acs-dl/slack-module-svc/internal/service/types"
 	"github.com/acs-dl/slack-module-svc/internal/worker"
-	"sync"
 
 	"gitlab.com/distributed_lab/logan/v3/errors"
 
