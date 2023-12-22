@@ -9,6 +9,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/receiver"
 	"github.com/acs-dl/slack-module-svc/internal/registrator"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
+	"github.com/acs-dl/slack-module-svc/internal/service/api"
 	"github.com/acs-dl/slack-module-svc/internal/service/api/handlers"
 	"github.com/acs-dl/slack-module-svc/internal/service/types"
 	"github.com/acs-dl/slack-module-svc/internal/worker"
@@ -26,13 +27,13 @@ type svc struct {
 }
 
 var services = []svc{
-	//{"slack", slack_client.NewSlack, nil, slack_client.CtxSlackClientInstance},
+	// {"slack", slack_client.NewSlack, nil, slack_client.CtxSlackClientInstance},
 	{"sender", sender.NewSenderAsInterface, sender.RunSenderAsInterface, sender.CtxSenderInstance},
 	{"processor", processor.NewProcessorAsInterface, nil, processor.CtxProcessorInstance},
 	{"worker", worker.NewWorkerAsInterface, worker.RunWorkerAsInterface, worker.CtxWorkerInstance},
 	{"receiver", receiver.NewReceiverAsInterface, receiver.RunReceiverAsInterface, receiver.CtxReceiverInstance},
 	{"registrar", registrator.NewRegistrarAsInterface, registrator.RunRegistrarAsInterface, nil},
-	//{"api", api.NewRouterAsInterface, api.RunRouterAsInterface, nil},
+	{"api", api.NewRouterAsInterface, api.RunRouterAsInterface, nil},
 }
 
 func runService(service types.Service, wg *sync.WaitGroup) {

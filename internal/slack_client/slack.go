@@ -39,8 +39,8 @@ type Conversation struct {
 func NewSlack(cfg config.Config) ClientForSlack {
 	return &slackStruct{
 		log:             cfg.Log(),
-		userAdminClient: slack.New(os.Getenv("USER_ADMIN_TOKEN")),
-		superBotClient:  slack.New(os.Getenv("SUPER_BOT_TOKEN")),
+		userAdminClient: slack.New(os.Getenv("USER_TOKEN")),
+		superBotClient:  slack.New(os.Getenv("BOT_TOKEN")),
 	}
 }
 

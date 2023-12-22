@@ -14,6 +14,7 @@ type AmqpConfig struct {
 	Topic        string `fig:"topic,required"`
 	Orchestrator string `fig:"orchestrator,required"`
 	Unverified   string `fig:"unverified,required"`
+	Identity     string `fig:"identity,required"`
 	Publisher    string `fig:"publisher,required"`
 	Subscriber   string `fig:"subscriber,required"`
 }
@@ -22,6 +23,7 @@ type AmqpData struct {
 	Topic        string
 	Orchestrator string
 	Unverified   string
+	Identity     string
 	Publisher    *amqp.Publisher
 	Subscriber   *amqp.Subscriber
 }
@@ -44,6 +46,7 @@ func (c *config) Amqp() *AmqpData {
 			Topic:        cfg.Topic,
 			Orchestrator: cfg.Orchestrator,
 			Unverified:   cfg.Unverified,
+			Identity:     cfg.Identity,
 			Subscriber:   createSubscriber(cfg.Subscriber),
 			Publisher:    createPublisher(cfg.Publisher),
 		}

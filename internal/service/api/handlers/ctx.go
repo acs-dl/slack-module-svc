@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"context"
-	"gitlab.com/distributed_lab/logan/v3"
 	"net/http"
+
+	"gitlab.com/distributed_lab/logan/v3"
 
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -18,6 +19,7 @@ const (
 	conversationsCtxKey
 	linksCtxKey
 	configCtxKey
+	parentContextCtxKey
 )
 
 func CtxLog(entry *logan.Entry) func(context.Context) context.Context {
@@ -78,12 +80,12 @@ func CtxConfig(entry config.Config, ctx context.Context) context.Context {
 	return context.WithValue(ctx, configCtxKey, entry)
 }
 
-//func ParentContext(ctx context.Context) context.Context {
-//	return ctx.Value(parentContextCtxKey).(context.Context)
-//}
+func ParentContext(ctx context.Context) context.Context {
+	return ctx.Value(parentContextCtxKey).(context.Context)
+}
 
-//func CtxParentContext(entry context.Context) func(context.Context) context.Context {
-//	return func(ctx context.Context) context.Context {
-//		return context.WithValue(ctx, parentContextCtxKey, entry)
-//	}
-//}
+func CtxParentContext(entry context.Context) func(context.Context) context.Context {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, parentContextCtxKey, entry)
+	}
+}
