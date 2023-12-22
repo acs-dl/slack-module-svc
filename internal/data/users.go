@@ -1,8 +1,9 @@
 package data
 
 import (
-	"gitlab.com/distributed_lab/kit/pgdb"
 	"time"
+
+	"gitlab.com/distributed_lab/kit/pgdb"
 )
 
 type Users interface {
@@ -43,5 +44,6 @@ type UnverifiedUser struct {
 	Submodule string    `json:"submodule"`
 	Username  *string   `json:"username,omitempty"`
 	RealName  *string   `json:"real_name,omitempty"`
+	SlackId   string    `json:"slack_id,omitempty"`
 	ModuleId  string    `json:"module_id"`
 }

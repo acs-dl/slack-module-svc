@@ -2,6 +2,7 @@ package processor
 
 import (
 	"encoding/json"
+
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -25,7 +26,8 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUser := convertUserToUnverifiedUser(users[i], permission.Link)
+		unverifiedUsers = append(unverifiedUsers, unverifiedUser)
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -88,6 +90,7 @@ func convertUserToUnverifiedUser(user data.User, submodule string) data.Unverifi
 		ModuleId:  user.SlackId,
 		Username:  user.Username,
 		RealName:  user.Realname,
+		SlackId:   user.SlackId,
 	}
 }
 

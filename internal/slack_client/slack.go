@@ -6,7 +6,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
-	"os"
 )
 
 type ClientForSlack interface {
