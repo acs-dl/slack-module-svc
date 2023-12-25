@@ -72,8 +72,7 @@ func (q UsersQ) Upsert(user data.User) error {
 
 	updateQuery := sq.Update(" ").
 		Set("username", user.Username).
-		Set("updated_at", time.Now()).
-		Set("slack_id", user.SlackId)
+		Set("updated_at", time.Now())
 
 	if user.Id != nil {
 		updateQuery = updateQuery.Set("id", *user.Id)

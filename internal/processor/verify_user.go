@@ -4,8 +4,6 @@ import (
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
-	"github.com/acs-dl/slack-module-svc/internal/helpers"
-	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -14,7 +12,6 @@ func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
 	return validation.Errors{
 		"user_id":  validation.Validate(msg.UserId, validation.Required),
 		"username": validation.Validate(msg.Username, validation.Required),
-		// "slack_id": validation.Validate(msg.SlackId, validation.Required),
 	}.Filter()
 }
 
@@ -25,19 +22,6 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 		return 0, errors.Wrap(err, "failed to parse user id")
 	}
 	return userId, nil
-}
-
-func (p *processor) getUserFromAPI(slackID string) (*data.User, error) {
-	user, err := helpers.GetUser(p.pqueues.UserPQueue,
-		any(p.client.UserFromApi),
-		[]any{slackID},
-		pqueue.NormalPriority,
-	)
-	if err != nil {
-		p.log.WithError(err).Errorf("failed to get user from api")
-		return nil, errors.Wrap(err, "failed to get user from api")
-	}
-	return user, nil
 }
 
 func (p *processor) updateUserInDB(user *data.User, userID int64) error {
@@ -63,16 +47,9 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, err
 	}
 
-	// TODO: msg doesn't contain slack_id. Fix it later
-	userDb, err := p.usersQ.FilterByUsername(msg.Username).Get()
+	user, err := p.usersQ.FilterByUsername(msg.Username).Get()
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to get user by username")
-		return data.FAILURE, err
-	}
-
-	user, err := p.getUserFromAPI(userDb.SlackId)
-	if err != nil {
-		p.log.WithError(err).Errorf("failed to get user from api")
 		return data.FAILURE, err
 	}
 
