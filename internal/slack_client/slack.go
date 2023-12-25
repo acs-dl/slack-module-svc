@@ -2,6 +2,8 @@ package slack_client
 
 import (
 	"context"
+	"os"
+
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"

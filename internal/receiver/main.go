@@ -31,16 +31,13 @@ type Receiver struct {
 	subscriber  *amqp.Subscriber
 	topic       string
 	log         *logan.Entry
-	processor   processor.Processor // dont have processor yet
+	processor   processor.Processor
 	worker      *worker.Worker
 	responseQ   data.Responses
 	runnerDelay time.Duration
 }
 
 var handleActions = map[string]func(r *Receiver, msg data.ModulePayload) (string, error){
-	//DeleteUserAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
-	//	return r.processor.HandleDeleteUserAction(msg)
-	//},
 	VerifyUserAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
 		return r.processor.HandleVerifyUserAction(msg)
 	},
@@ -91,20 +88,20 @@ func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
 		case <-ctx.Done():
 			return nil
 		case msg := <-msgChan:
-
-			//TODO: 1
 			r.log.Info("received message ", msg.UUID)
 			err = r.processMessage(msg)
 			if err != nil {
 				r.log.WithError(err).Error("failed to process message ", msg.UUID)
+			} else {
+				msg.Ack()
 			}
-			msg.Ack()
 		}
 	}
 }
 
 func (r *Receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	r.log.Infof("handling message with id `%s`", msg.RequestId)
+
 	err := validation.Errors{
 		"action": validation.Validate(msg.Action, validation.Required),
 	}.Filter()
@@ -114,11 +111,8 @@ func (r *Receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	}
 
 	requestHandler := handleActions[msg.Action]
-
 	requestStatus, err := requestHandler(r, msg)
-
 	if err != nil {
-
 		r.log.WithError(err).Errorf("failed to handle message with id `%s`", msg.RequestId)
 		return requestStatus, err
 	}

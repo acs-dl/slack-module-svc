@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -14,7 +15,7 @@ func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
 	return validation.Errors{
 		"user_id":  validation.Validate(msg.UserId, validation.Required),
 		"username": validation.Validate(msg.Username, validation.Required),
-		"slack_id": validation.Validate(msg.SlackId, validation.Required),
+		// "slack_id": validation.Validate(msg.SlackId, validation.Required),
 	}.Filter()
 }
 
@@ -51,6 +52,7 @@ func (p *processor) updateUserInDB(user *data.User, userID int64) error {
 
 func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, error) {
 	p.log.Infof("start handle message action with id `%s`", msg.RequestId)
+	fmt.Println(msg)
 
 	if err := p.validateVerifyUser(msg); err != nil {
 		p.log.WithError(err).Errorf("failed to validate fields")
@@ -63,7 +65,14 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, err
 	}
 
-	user, err := p.getUserFromAPI(msg.SlackId)
+	// TODO: msg doesn't contain slack_id. Fix it later
+	userDb, err := p.usersQ.FilterByUsername(msg.Username).Get()
+	if err != nil {
+		p.log.WithError(err).Errorf("failed to get user by username")
+		return data.FAILURE, err
+	}
+
+	user, err := p.getUserFromAPI(userDb.SlackId)
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to get user from api")
 		return data.FAILURE, err
@@ -85,6 +94,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		Username:  msg.Username,
 		Realname:  msg.Realname,
 		Action:    UpdateSlackAction,
+		SlackId:   msg.SlackId,
 	}); err != nil {
 		p.log.WithError(err).Errorf("failed to publish users")
 		return data.FAILURE, errors.Wrap(err, "failed to publish users")

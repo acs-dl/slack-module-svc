@@ -3,13 +3,14 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/fatih/structs"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"strings"
-	"time"
 )
 
 const (
@@ -71,7 +72,8 @@ func (q UsersQ) Upsert(user data.User) error {
 
 	updateQuery := sq.Update(" ").
 		Set("username", user.Username).
-		Set("updated_at", time.Now())
+		Set("updated_at", time.Now()).
+		Set("slack_id", user.SlackId)
 
 	if user.Id != nil {
 		updateQuery = updateQuery.Set("id", *user.Id)

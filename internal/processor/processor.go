@@ -2,6 +2,7 @@ package processor
 
 import (
 	"context"
+
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/data/manager"
@@ -38,18 +39,21 @@ type processor struct {
 	sender          *sender.Sender
 	pqueues         *pqueue.PQueues
 	unverifiedTopic string
+	identityTopic   string
 }
 
 func NewProcessorAsInterface(cfg config.Config, ctx context.Context) interface{} {
 	return interface{}(&processor{
-		log:            cfg.Log().WithField("service", ServiceName),
-		client:         slack_client.NewSlack(cfg),
-		permissionsQ:   postgres.NewPermissionsQ(cfg.DB()),
-		usersQ:         postgres.NewUsersQ(cfg.DB()),
-		conversationsQ: postgres.NewConversationsQ(cfg.DB()),
-		managerQ:       manager.NewManager(cfg.DB()),
-		sender:         sender.SenderInstance(ctx),
-		pqueues:        pqueue.PQueuesInstance(ctx),
+		log:             cfg.Log().WithField("service", ServiceName),
+		client:          slack_client.NewSlack(cfg),
+		permissionsQ:    postgres.NewPermissionsQ(cfg.DB()),
+		usersQ:          postgres.NewUsersQ(cfg.DB()),
+		conversationsQ:  postgres.NewConversationsQ(cfg.DB()),
+		managerQ:        manager.NewManager(cfg.DB()),
+		sender:          sender.SenderInstance(ctx),
+		pqueues:         pqueue.PQueuesInstance(ctx),
+		unverifiedTopic: cfg.Amqp().Unverified,
+		identityTopic:   cfg.Amqp().Identity,
 	})
 }
 

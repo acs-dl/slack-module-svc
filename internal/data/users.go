@@ -44,6 +44,6 @@ type UnverifiedUser struct {
 	Submodule string    `json:"submodule"`
 	Username  *string   `json:"username,omitempty"`
 	RealName  *string   `json:"real_name,omitempty"`
-	SlackId   string    `json:"slack_id,omitempty"`
+	SlackId   string    `json:"slack_id"`
 	ModuleId  string    `json:"module_id"`
 }

@@ -30,12 +30,12 @@ func NewSenderAsInterface(cfg config.Config, _ context.Context) interface{} {
 		publisher:   cfg.Amqp().Publisher,
 		responsesQ:  postgres.NewResponsesQ(cfg.DB()),
 		log:         logan.New().WithField("service", ServiceName),
-		topic:       "orchestrator",
+		topic:       cfg.Amqp().Orchestrator,
 		runnerDelay: cfg.Runners().Sender,
 	})
 }
 
-func (s *Sender) Run(ctx context.Context) error {
+func (s *Sender) Run(ctx context.Context) {
 	go running.WithBackOff(ctx, s.log,
 		ServiceName,
 		s.processMessages,
@@ -43,10 +43,9 @@ func (s *Sender) Run(ctx context.Context) error {
 		s.runnerDelay,
 		s.runnerDelay,
 	)
-	return nil
 }
 
-func (s *Sender) processMessages(_ context.Context) error {
+func (s *Sender) processMessages(ctx context.Context) error {
 	s.log.Info("started processing responses")
 
 	responses, err := s.responsesQ.Select()
@@ -89,7 +88,6 @@ func (s *Sender) buildResponse(response data.Response) *message.Message {
 }
 
 func (s *Sender) SendMessageToCustomChannel(topic string, msg *message.Message) error {
-
 	err := (*s.publisher).Publish(topic, msg)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to send msg `%s to `%s`", msg.UUID, topic)

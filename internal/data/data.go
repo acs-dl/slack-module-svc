@@ -1,16 +1,9 @@
 package data
 
 const (
-	ModuleName        = "slack_client"
+	ModuleName        = "slack"
 	UnverifiedService = "unverified-svc"
 	IdentityService   = "identity"
-	//Organization           = "org"
-	//Repository             = "repo"
-	//UserOwned              = "User"
-	//OrganizationOwned      = "Organization"
-	//Push                   = "push"
-	//AcceptHeader           = "application/vnd.Github+json"
-	//GithubApiVersionHeader = "2022-11-28"
 )
 
 type ModulePayload struct {

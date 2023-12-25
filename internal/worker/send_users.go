@@ -2,13 +2,13 @@ package worker
 
 import (
 	"encoding/json"
+
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 func (w *Worker) sendUsers(uuid string, users []data.User) error {
-
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 	for i := range users {
 		if users[i].Id != nil {
@@ -64,5 +64,6 @@ func convertUserToUnverifiedUser(user data.User, submodule string) data.Unverifi
 		ModuleId:  user.SlackId,
 		Username:  user.Username,
 		RealName:  user.Realname,
+		SlackId:   user.SlackId,
 	}
 }

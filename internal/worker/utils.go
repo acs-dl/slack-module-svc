@@ -6,10 +6,8 @@ import (
 )
 
 func (w *Worker) getUserFromDbBySlackId(slackId string) (*data.User, error) {
-
 	usersQ := w.usersQ.New()
 	user, err := usersQ.FilterBySlackIds(slackId).Get()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user from db")
 	}

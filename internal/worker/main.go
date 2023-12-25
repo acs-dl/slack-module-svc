@@ -154,7 +154,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 
 	w.logger.Info("ProcessPermissions completed")
 
-	w.estimatedTime = time.Now().Sub(startTime)
+	w.estimatedTime = time.Since(startTime)
 	return nil
 }
 

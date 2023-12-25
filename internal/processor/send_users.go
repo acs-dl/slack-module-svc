@@ -27,6 +27,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		}
 
 		unverifiedUser := convertUserToUnverifiedUser(users[i], permission.Link)
+
 		unverifiedUsers = append(unverifiedUsers, unverifiedUser)
 	}
 
@@ -82,7 +83,6 @@ func (p *processor) buildMessage(uuid string, payload []byte) *message.Message {
 }
 
 func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-
 	return data.UnverifiedUser{
 		CreatedAt: user.CreatedAt,
 		Module:    data.ModuleName,

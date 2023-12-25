@@ -2,13 +2,14 @@ package processor
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/slack_client"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"time"
 )
 
 func (p *processor) validateGetUsers(msg data.ModulePayload) error {
@@ -46,7 +47,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 
 		workspaceName, err := p.getWorkspaceName()
 		if err != nil {
-			p.log.WithError(err).Error("failed to get workspaceName from AP `%s`")
+			p.log.WithError(err).Error("failed to get workspaceName from AP")
 			return errors.Wrap(err, "failed to get workspaceName from AP")
 
 		}
