@@ -13,7 +13,7 @@ allOf:
         properties:
           username:
             type: string
-            description: username from telegram
+            description: username from slack
             example: "velykodnyi"
           module_id:
             type: integer

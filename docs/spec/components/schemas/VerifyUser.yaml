@@ -10,7 +10,7 @@ properties:
     example: "add_user"
   username:
     type: string
-    description: user's username from gitlab
+    description: user's username from slack
     example: "slandymani"
   user_id:
     type: string

@@ -18,6 +18,6 @@ type UserPermissionAttributes struct {
 	SubmoduleId *string `json:"submodule_id,omitempty"`
 	// user id from identity
 	UserId *int64 `json:"user_id,omitempty"`
-	// username from telegram
+	// username from slack
 	Username *string `json:"username,omitempty"`
 }

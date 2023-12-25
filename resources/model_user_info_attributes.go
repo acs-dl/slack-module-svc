@@ -9,6 +9,6 @@ type UserInfoAttributes struct {
 	Name string `json:"name"`
 	// id from slack
 	SlackId *string `json:"slack_id,omitempty"`
-	// username from telegram
+	// username from slack
 	Username *string `json:"username,omitempty"`
 }

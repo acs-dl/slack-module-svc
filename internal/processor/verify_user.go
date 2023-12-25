@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -52,7 +51,6 @@ func (p *processor) updateUserInDB(user *data.User, userID int64) error {
 
 func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, error) {
 	p.log.Infof("start handle message action with id `%s`", msg.RequestId)
-	fmt.Println(msg)
 
 	if err := p.validateVerifyUser(msg); err != nil {
 		p.log.WithError(err).Errorf("failed to validate fields")

@@ -39,8 +39,8 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 
 	err = w.sender.SendMessageToCustomChannel(data.UnverifiedService, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to publish users to `telegram-module`")
-		return errors.Wrap(err, "failed to publish users to `telegram-module`")
+		w.logger.WithError(err).Errorf("failed to publish users to `slack-module`")
+		return errors.Wrap(err, "failed to publish users to `slack-module`")
 	}
 
 	w.logger.Infof("successfully published users to `unverified-svc`")

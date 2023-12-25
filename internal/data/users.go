@@ -16,7 +16,7 @@ type Users interface {
 
 	FilterByLowerTime(time time.Time) Users
 	FilterById(id *int64) Users
-	FilterBySlackIds(telegramIds ...string) Users
+	FilterBySlackIds(slackIds ...string) Users
 	FilterByUsername(username string) Users
 	//FilterByPhone(phone string) Users
 	SearchBy(search string) Users

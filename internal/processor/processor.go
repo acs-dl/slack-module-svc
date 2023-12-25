@@ -20,8 +20,6 @@ const (
 
 	SetUsersAction    = "set_users"
 	DeleteUsersAction = "delete_users"
-
-	RemoveSlackAction = "update_telegram"
 )
 
 type Processor interface {

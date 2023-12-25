@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -119,7 +118,6 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 
 		//bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
 
-		fmt.Println(msg.RequestId)
 		if err := p.permissionsQ.Upsert(data.Permission{
 			RequestId:   msg.RequestId,
 			WorkSpace:   *workspaceName,
