@@ -18,8 +18,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/data/postgres"
-	//"github.com/acs-dl/slack-module-svc/internal/processor"
-	//"gitlab.com/distributed_lab/running"
 )
 
 const (
@@ -29,6 +27,8 @@ const (
 
 type IWorker interface {
 	Run(ctx context.Context)
+	ProcessPermissions(_ context.Context) error
+	GetEstimatedTime() time.Duration
 }
 
 type Worker struct {
@@ -75,8 +75,9 @@ func (w *Worker) Run(ctx context.Context) error {
 }
 
 func (w *Worker) ProcessPermissions(_ context.Context) error {
-
 	w.logger.Info("getting users from api")
+	startTime := time.Now()
+
 	usersStore, err := helpers.GetUsers(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.FetchUsers),
@@ -152,6 +153,8 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	}
 
 	w.logger.Info("ProcessPermissions completed")
+
+	w.estimatedTime = time.Now().Sub(startTime)
 	return nil
 }
 
@@ -266,4 +269,8 @@ func (w *Worker) createPermissions(link string) error {
 	}
 
 	return nil
+}
+
+func (w *Worker) GetEstimatedTime() time.Duration {
+	return w.estimatedTime
 }
