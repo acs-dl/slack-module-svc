@@ -15,6 +15,8 @@ type UserAttributes struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	// module name
 	Module string `json:"module"`
+	// id from slack
+	SlackId *string `json:"slack_id,omitempty"`
 	// submodule name
 	Submodule *string `json:"submodule,omitempty"`
 	// user id from identity module, if user is not verified - null
