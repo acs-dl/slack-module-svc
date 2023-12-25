@@ -26,3 +26,7 @@ properties:
     type: int
     description: user's id from identity
     example: 123
+  slack_id:
+    type: string
+    description: id from slack
+    

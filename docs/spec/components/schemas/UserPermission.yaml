@@ -15,15 +15,28 @@ allOf:
             type: string
             description: username from telegram
             example: "velykodnyi"
+          module_id:
+            type: integer
+            format: int64
+            description: user id from module
+            example: 8421495
           user_id:
             type: integer
             format: int64
             description: user id from identity
             example: 666
+          slack_id:
+            type: string
+            description: id from slack
+            example: "mhrynenko"
           link:
             type: string
             description: chat title
             example: "WE vs. ACS"
+          submodule_id:
+            type: string
+            description: submodule id to handle submodule with the same title
+            example: 666
           path:
             type: string
             description: workspace title
