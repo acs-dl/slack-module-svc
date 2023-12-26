@@ -2,7 +2,6 @@ package slack_client
 
 import (
 	"context"
-	"os"
 
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -36,10 +35,12 @@ type Conversation struct {
 }
 
 func NewSlack(cfg config.Config) ClientForSlack {
+	config := cfg.SlackParams()
+
 	return &slackStruct{
 		log:             cfg.Log(),
-		userAdminClient: slack.New(os.Getenv("USER_TOKEN")),
-		superBotClient:  slack.New(os.Getenv("BOT_TOKEN")),
+		userAdminClient: slack.New(config.UserToken),
+		superBotClient:  slack.New(config.BotToken),
 	}
 }
 
