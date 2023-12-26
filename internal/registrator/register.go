@@ -39,7 +39,6 @@ func (r *registrar) registerModule(_ context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "couldn't create request")
 	}
-	req.Close = true
 
 	req.Header.Set("Content-Type", "application/json")
 

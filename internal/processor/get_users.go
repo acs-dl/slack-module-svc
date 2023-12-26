@@ -46,9 +46,8 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 
 		workspaceName, err := p.getWorkspaceName()
 		if err != nil {
-			p.log.WithError(err).Error("failed to get workspaceName from AP")
-			return errors.Wrap(err, "failed to get workspaceName from AP")
-
+			p.log.WithError(err).Error("failed to get workspaceName from API")
+			return errors.Wrap(err, "failed to get workspaceName from API")
 		}
 
 		usersToUnverified := make([]data.User, 0)
@@ -116,6 +115,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 		user.Id = dbUser.Id
 		*usersToUnverified = append(*usersToUnverified, user)
 
+		// TODO: get billable info for the user
 		//bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
 
 		if err := p.permissionsQ.Upsert(data.Permission{
@@ -138,7 +138,6 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 }
 
 func (p *processor) storeChatInDatabaseSafe(chat *slack_client.Conversation) error {
-
 	err := p.conversationsQ.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,

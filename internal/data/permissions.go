@@ -46,7 +46,7 @@ type Permission struct {
 	SlackId     string    `json:"slack_id" db:"slack_id" structs:"slack_id"`
 	Username    string    `json:"username" db:"username" structs:"username"`
 	AccessLevel string    `json:"access_level" db:"access_level" structs:"access_level"`
-	Link        string    `json:"link" db:"link" structs:"link"` //mean conversation
+	Link        string    `json:"link" db:"link" structs:"link"` // same as conversation
 	SubmoduleId string    `json:"submodule_id" db:"submodule_id" structs:"submodule_id"`
 	Bill        bool      `json:"bill" db:"bill" structs:"bill"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at" structs:"created_at"`

@@ -131,7 +131,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 			Realname: &copiedRealName,
 			SlackId:  user.ID,
 		}
-		//user.ID = *dbUser.Id
+
 		usersToUnverified = append(usersToUnverified, userData)
 		fmt.Printf("len %d\n", len(usersToUnverified))
 
@@ -159,7 +159,6 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 }
 
 func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
-
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,
@@ -259,7 +258,6 @@ func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 }
 
 func (w *Worker) createPermissions(link string) error {
-
 	if err := w.processor.HandleGetUsersAction(data.ModulePayload{
 		RequestId: "from-worker",
 		Link:      link,

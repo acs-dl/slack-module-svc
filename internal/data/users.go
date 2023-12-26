@@ -18,7 +18,6 @@ type Users interface {
 	FilterById(id *int64) Users
 	FilterBySlackIds(slackIds ...string) Users
 	FilterByUsername(username string) Users
-	//FilterByPhone(phone string) Users
 	SearchBy(search string) Users
 
 	Count() Users

@@ -56,7 +56,6 @@ func (w *Worker) buildMessage(uuid string, payload []byte) *message.Message {
 }
 
 func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-
 	return data.UnverifiedUser{
 		CreatedAt: user.CreatedAt,
 		Module:    data.ModuleName,

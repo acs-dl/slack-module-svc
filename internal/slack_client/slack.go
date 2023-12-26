@@ -21,8 +21,6 @@ type ClientForSlack interface {
 	//ConversationUserFromApi(user data.User, conversation Conversation) (*data.User, error)
 
 	ConversationUsersFromApi(conversation Conversation) ([]data.User, error)
-
-	//DeleteFromChatFromApi(user data.User, chat Chat) error
 }
 
 type slackStruct struct {

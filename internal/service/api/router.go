@@ -30,8 +30,6 @@ func (r *Router) apiRouter() chi.Router {
 			handlers.CtxConversationsQ(postgres.NewConversationsQ(r.cfg.DB())),
 			handlers.CtxLinksQ(postgres.NewLinksQ(r.cfg.DB())),
 
-			// connectors
-
 			// other configs
 			handlers.CtxParentContext(r.ctx),
 		),

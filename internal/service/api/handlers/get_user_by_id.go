@@ -38,7 +38,6 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if permission != nil {
-		// user.Submodule = &permission.Link
 		user.AccessLevel = permission.AccessLevel
 	}
 
