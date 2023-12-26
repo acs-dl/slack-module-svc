@@ -115,8 +115,11 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 		user.Id = dbUser.Id
 		*usersToUnverified = append(*usersToUnverified, user)
 
-		// TODO: get billable info for the user
-		//bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
+		bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
+		if err != nil {
+			p.log.WithError(err).Errorf("failed to get billable info `%s`", msg.RequestId)
+			return errors.Wrap(err, "failed to get billable info")
+		}
 
 		if err := p.permissionsQ.Upsert(data.Permission{
 			RequestId:   msg.RequestId,
@@ -127,7 +130,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 			Link:        msg.Link,
 			CreatedAt:   user.CreatedAt,
 			SubmoduleId: chat.Id,
-			Bill:        false,
+			Bill:        bill,
 		}); err != nil {
 			p.log.WithError(err).Errorf("failed to upsert permission in db for message action with id `%s`", msg.RequestId)
 			return errors.Wrap(err, "failed to upsert permission in db")

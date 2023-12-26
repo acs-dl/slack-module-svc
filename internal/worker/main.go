@@ -186,8 +186,10 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 		return errors.Wrap(err, "Error getting user conversations.")
 	}
 
-	//TODO: uncomment when billable info will be useful for you
-	//bill, err := helpers.GetBillableInfoForUser(w.pqueues.SuperUserPQueue, any(w.client.BillableInfoForUser), []interface{}{user.ID}, pqueue.LowPriority)
+	bill, err := helpers.GetBillableInfoForUser(w.pqueues.SuperUserPQueue, any(w.client.BillableInfoForUser), []interface{}{user.ID}, pqueue.LowPriority)
+	if err != nil {
+		return errors.Wrap(err, "Error getting billable info")
+	}
 
 	for _, channel := range channels {
 
@@ -198,7 +200,7 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 			AccessLevel: w.userStatus(&user),
 			Link:        channel.Name,
 			SubmoduleId: channel.ID,
-			Bill:        false, //TODO: just use 'bill' here
+			Bill:        bill,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		})
