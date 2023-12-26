@@ -25,10 +25,6 @@ allOf:
             format: int64
             description: user id from identity
             example: 666
-          slack_id:
-            type: string
-            description: id from slack
-            example: "mhrynenko"
           link:
             type: string
             description: chat title
@@ -45,4 +41,3 @@ allOf:
             type: object
             description: level of success for workspace
             $ref: "#/components/schemas/AccessLevel"
-
