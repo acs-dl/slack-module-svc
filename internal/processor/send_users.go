@@ -2,6 +2,7 @@ package processor
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -15,11 +16,10 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		if users[i].Id != nil {
 			continue
 		}
-		permission, err := p.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 
+		permission, err := p.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
-			p.log.WithError(err).Errorf("failed to select permissions by date `%s`", users[i].CreatedAt.String())
-			return errors.Wrap(err, "failed to select permissions by date")
+			return errors.Wrap(err, fmt.Sprintf("failed to select permissions by date `%s`", users[i].CreatedAt.String()))
 		}
 
 		if permission == nil {
@@ -27,7 +27,6 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		}
 
 		unverifiedUser := convertUserToUnverifiedUser(users[i], permission.Link)
-
 		unverifiedUsers = append(unverifiedUsers, unverifiedUser)
 	}
 
@@ -36,13 +35,11 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		Users:  unverifiedUsers,
 	})
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to marshal unverified users list")
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
 	err = p.sender.SendMessageToCustomChannel(data.UnverifiedService, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to publish users to `slack-module`")
 		return errors.Wrap(err, "failed to publish users to `slack-module`")
 	}
 
@@ -52,21 +49,17 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 
 func (p *processor) SendDeleteUser(uuid string, user data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
-
 	unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(user, ""))
-
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
 		Action: DeleteUsersAction,
 		Users:  unverifiedUsers,
 	})
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to marshal unverified users list")
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
 	err = p.sender.SendMessageToCustomChannel(data.UnverifiedService, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to publish users to `unverified-svc`")
 		return errors.Wrap(err, "failed to publish users to `unverified-svc`")
 	}
 
@@ -97,13 +90,11 @@ func convertUserToUnverifiedUser(user data.User, submodule string) data.Unverifi
 func (p *processor) sendUpdateUserSlack(uuid string, msg data.ModulePayload) error {
 	marshaledPayload, err := json.Marshal(msg)
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to marshal update slack info")
 		return errors.Wrap(err, "failed to marshal update slack info")
 	}
 
 	err = p.sender.SendMessageToCustomChannel(data.IdentityService, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to publish users to `identity-svc`")
 		return errors.Wrap(err, "failed to publish users to `identity-svc`")
 	}
 

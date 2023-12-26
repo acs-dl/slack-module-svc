@@ -82,7 +82,7 @@ func (q UsersQ) Upsert(user data.User) error {
 
 	query := sq.Insert(usersTableName).SetMap(clauses).Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...)
 
-	return q.db.Exec(query)
+	return errors.Wrap(q.db.Exec(query), "failed to insert user")
 }
 
 func (q UsersQ) Delete() error {
@@ -90,11 +90,11 @@ func (q UsersQ) Delete() error {
 
 	err := q.db.Select(&deleted, q.deleteBuilder.Suffix("RETURNING *"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete users")
 	}
 
 	if len(deleted) == 0 {
-		return errors.Errorf("no such data to delete")
+		return sql.ErrNoRows
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (q UsersQ) Get() (*data.User, error) {
 		return nil, nil
 	}
 
-	return &result, err
+	return &result, errors.Wrap(err, "failed to get user")
 }
 
 func (q UsersQ) Select() ([]data.User, error) {
@@ -117,7 +117,7 @@ func (q UsersQ) Select() ([]data.User, error) {
 
 	err := q.db.Select(&result, q.selectBuilder)
 
-	return result, err
+	return result, errors.Wrap(err, "failed to select users")
 }
 
 func (q UsersQ) FilterById(id *int64) data.Users {
@@ -165,7 +165,7 @@ func (q UsersQ) GetTotalCount() (int64, error) {
 	var count int64
 	err := q.db.Get(&count, q.selectBuilder)
 
-	return count, err
+	return count, errors.Wrap(err, "failed to get total count of users")
 }
 
 func (q UsersQ) FilterByLowerTime(time time.Time) data.Users {

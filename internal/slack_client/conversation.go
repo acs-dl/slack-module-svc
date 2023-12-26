@@ -2,8 +2,9 @@ package slack_client
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	"time"
+
+	"github.com/slack-go/slack"
 
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -14,7 +15,6 @@ func (s *slackStruct) ConversationFromApi(title string) ([]Conversation, error) 
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get chat `%s`", title))
 	}
 
-	s.log.Infof("successfully got chat")
 	return chats, nil
 }
 

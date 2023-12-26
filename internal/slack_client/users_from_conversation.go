@@ -7,10 +7,8 @@ import (
 )
 
 func (s *slackStruct) ConversationUsersFromApi(conversation Conversation) ([]data.User, error) {
-
 	users, err := s.getChatMembers(conversation)
 	if err != nil {
-		s.log.Errorf("failed to get chat members")
 		return nil, errors.Wrap(err, "failed to get chat members")
 	}
 
@@ -20,21 +18,16 @@ func (s *slackStruct) ConversationUsersFromApi(conversation Conversation) ([]dat
 func (s *slackStruct) getChatMembers(conversation Conversation) ([]data.User, error) {
 	users, err := s.getAllUsers(conversation.Id)
 	if err != nil {
-		s.log.Errorf("failed to get all users")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get all users")
 	}
 
 	return users, nil
 }
 
 func (s *slackStruct) getAllUsers(id string) ([]data.User, error) {
-	users := make([]data.User, 0)
-	var err error = nil
-
-	users, err = s.getAllUsersFromConversation(id)
+	users, err := s.getAllUsersFromConversation(id)
 	if err != nil {
-		s.log.Errorf("failed to get all users from chat")
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get all users from chat")
 	}
 
 	s.log.Infof("found `%d` users", len(users))
@@ -42,7 +35,6 @@ func (s *slackStruct) getAllUsers(id string) ([]data.User, error) {
 }
 
 func (s *slackStruct) getAllUsersFromConversation(chatId string) ([]data.User, error) {
-
 	//TODO: maybe youse priority queue?
 	var users []data.User
 	cursor := "" // For pagination
@@ -55,14 +47,14 @@ func (s *slackStruct) getAllUsersFromConversation(chatId string) ([]data.User, e
 		}
 		userIDs, nextCursor, err := s.superBotClient.GetUsersInConversation(params)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to get users in conversation")
 		}
 
 		// Getting information about each user
 		for _, userID := range userIDs {
 			user, err := s.superBotClient.GetUserInfo(userID)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "failed to get user info")
 			}
 			users = append(users, data.User{
 				Username:    &user.Name,

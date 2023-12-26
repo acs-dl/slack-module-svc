@@ -15,10 +15,7 @@ type ClientForSlack interface {
 	WorkspaceName() (string, error)
 	ConversationsForUser(userId string) ([]slack.Channel, error)
 	BillableInfoForUser(userId string) (bool, error)
-
 	ConversationFromApi(title string) ([]Conversation, error)
-	//ConversationUserFromApi(user data.User, conversation Conversation) (*data.User, error)
-
 	ConversationUsersFromApi(conversation Conversation) ([]data.User, error)
 }
 

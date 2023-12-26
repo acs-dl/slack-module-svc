@@ -2,6 +2,7 @@ package worker
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -14,11 +15,10 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 		if users[i].Id != nil {
 			continue
 		}
-		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 
+		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
-			w.logger.WithError(err).Errorf("failed to select permissions by date `%s`", users[i].CreatedAt.String())
-			return errors.Wrap(err, "failed to select permissions by date")
+			return errors.Wrap(err, fmt.Sprintf("failed to select permissions by date `%s`", users[i].CreatedAt.String()))
 		}
 
 		if permission == nil {
@@ -33,13 +33,11 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 		Users:  unverifiedUsers,
 	})
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to marshal unverified users list")
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
 	err = w.sender.SendMessageToCustomChannel(data.UnverifiedService, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to publish users to `slack-module`")
 		return errors.Wrap(err, "failed to publish users to `slack-module`")
 	}
 

@@ -2,12 +2,12 @@ package slack_client
 
 import (
 	"fmt"
+
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 func (s *slackStruct) ConversationsForUser(userId string) ([]slack.Channel, error) {
-
 	channels, _, err := s.superBotClient.GetConversationsForUser(
 		&slack.GetConversationsForUserParameters{
 			UserID: userId,
@@ -15,7 +15,6 @@ func (s *slackStruct) ConversationsForUser(userId string) ([]slack.Channel, erro
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get conversations for user %s.", userId))
-
 	}
 
 	return channels, nil
