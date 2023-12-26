@@ -9,6 +9,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/slack_client"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -28,6 +29,11 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	chats, err := p.getConversations(msg.Link)
 	if err != nil {
 		return errors.Wrap(err, "failed to get chat from api")
+	}
+
+	billableInfo, err := p.getBillableInfo()
+	if err != nil {
+		return errors.Wrap(err, "failed to get billable info from Slack API")
 	}
 
 	for _, chat := range chats {
@@ -52,7 +58,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 
 		usersToUnverified := make([]data.User, 0)
 		for _, user := range users {
-			if err := p.processUser(user, &msg, &workspaceName, &chat, &usersToUnverified); err != nil {
+			if err := p.processUser(user, &msg, &workspaceName, &chat, &usersToUnverified, billableInfo); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("failed to process user id:%s", user.SlackId))
 			}
 		}
@@ -68,6 +74,10 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 
 func (p *processor) getConversations(link string) ([]slack_client.Conversation, error) {
 	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.ConversationFromApi), []any{any(link)}, pqueue.LowPriority)
+}
+
+func (p *processor) getBillableInfo() (map[string]slack.BillingActive, error) {
+	return helpers.GetBillableInfo(p.pqueues.SuperUserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
 func (p *processor) getUsersForChat(chat slack_client.Conversation) ([]data.User, error) {
@@ -87,7 +97,14 @@ func (p *processor) getWorkspaceName() (string, error) {
 	)
 }
 
-func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack_client.Conversation, usersToUnverified *[]data.User) error {
+func (p *processor) processUser(
+	user data.User,
+	msg *data.ModulePayload,
+	workspaceName *string,
+	chat *slack_client.Conversation,
+	usersToUnverified *[]data.User,
+	billableInfo map[string]slack.BillingActive,
+) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
 		if err := p.usersQ.Upsert(user); err != nil {
@@ -102,9 +119,9 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 		user.Id = dbUser.Id
 		*usersToUnverified = append(*usersToUnverified, user)
 
-		bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to get billable info `%s`", msg.RequestId))
+		bill, ok := billableInfo[user.SlackId]
+		if !ok {
+			return errors.Errorf("failed to get billable info for user id:%s", user.SlackId)
 		}
 
 		if err := p.permissionsQ.Upsert(data.Permission{
@@ -116,7 +133,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 			Link:        msg.Link,
 			CreatedAt:   user.CreatedAt,
 			SubmoduleId: chat.Id,
-			Bill:        bill,
+			Bill:        bill.BillingActive,
 		}); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("failed to upsert permission in db for message action with id `%s`", msg.RequestId))
 		}

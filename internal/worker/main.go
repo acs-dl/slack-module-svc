@@ -78,9 +78,9 @@ func (w *Worker) Run(ctx context.Context) error {
 }
 
 func (w *Worker) ProcessPermissions(_ context.Context) error {
-	w.logger.Info("getting users from Slack API")
-
 	startTime := time.Now()
+
+	w.logger.Info("getting users from Slack API")
 	usersStore, err := helpers.GetUsers(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.FetchUsers),
@@ -89,6 +89,16 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to get users from Slack API")
+	}
+
+	w.logger.Info("getting billable info from Slack API")
+	billableInfo, err := helpers.GetBillableInfo(
+		w.pqueues.SuperUserPQueue,
+		any(w.client.GetBillableInfo),
+		pqueue.LowPriority,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to get billable info from Slack API")
 	}
 
 	w.logger.Info("getting workspaceName from Slack API")
@@ -128,7 +138,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 		usersToUnverified = append(usersToUnverified, userData)
 
 		w.logger.Info("inserting permissions into table 'permissions'")
-		err = w.retrieveAndUpsertPermissions(user, workspaceName)
+		err = w.retrieveAndUpsertPermissions(user, workspaceName, billableInfo)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("failed to process permissions for user id:%s", user.ID))
 		}
@@ -161,7 +171,7 @@ func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
 	return nil
 }
 
-func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName string) error {
+func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName string, billableInfo map[string]slack.BillingActive) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.ConversationsForUser),
@@ -172,12 +182,12 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 		return errors.Wrap(err, "failed to get user conversations")
 	}
 
-	bill, err := helpers.GetBillableInfoForUser(w.pqueues.SuperUserPQueue, any(w.client.BillableInfoForUser), []interface{}{user.ID}, pqueue.LowPriority)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to get billable info for user id:%s", user.ID))
-	}
-
 	for _, channel := range channels {
+		bill, ok := billableInfo[user.ID]
+		if !ok {
+			return errors.Errorf("failed to get billable info for user id:%s", user.ID)
+		}
+
 		err := w.permissionsQ.Upsert(data.Permission{
 			WorkSpace:   workspaceName,
 			SlackId:     user.ID,
@@ -185,7 +195,7 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 			AccessLevel: w.userStatus(&user),
 			Link:        channel.Name,
 			SubmoduleId: channel.ID,
-			Bill:        bill,
+			Bill:        bill.BillingActive,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		})

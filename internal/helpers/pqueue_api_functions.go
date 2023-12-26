@@ -143,20 +143,20 @@ func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []a
 	return conversations, nil
 }
 
-func GetBillableInfoForUser(queue *pqueue.PriorityQueue, function any, args []any, priority int) (bool, error) {
-	item, err := AddFunctionInPQueue(queue, function, args, priority)
+func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (map[string]slack.BillingActive, error) {
+	item, err := AddFunctionInPQueue(queue, function, []any{}, priority)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to add function in pqueue")
+		return nil, errors.Wrap(err, "failed to add function in pqueue")
 	}
 
 	err = item.Response.Error
 	if err != nil {
-		return false, errors.Wrap(err, "some error while getting chat from api")
+		return nil, errors.Wrap(err, "some error while getting billable info from api")
 	}
 
-	billableInfo, ok := item.Response.Value.(bool)
+	billableInfo, ok := item.Response.Value.(map[string]slack.BillingActive)
 	if !ok {
-		return false, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting billable info from api")
 	}
 
 	return billableInfo, nil
