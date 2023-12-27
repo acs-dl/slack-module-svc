@@ -9,6 +9,6 @@ type VerifyUser struct {
 	Action string `json:"action"`
 	// user's id from identity
 	UserId string `json:"user_id"`
-	// user's username from gitlab
+	// user's username from slack
 	Username string `json:"username"`
 }
