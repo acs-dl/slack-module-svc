@@ -26,6 +26,7 @@ type Permissions interface {
 
 	FilterBySlackIds(slackIds ...string) Permissions
 	FilterByLinks(links ...string) Permissions
+	FilterByUsernames(usernames ...string) Permissions
 	FilterByGreaterTime(time time.Time) Permissions
 	FilterByLowerTime(time time.Time) Permissions
 	SearchBy(search string) Permissions
