@@ -2,8 +2,6 @@ module github.com/acs-dl/slack-module-svc
 
 go 1.21
 
-toolchain go1.21.5
-
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/ThreeDotsLabs/watermill v1.3.5
@@ -24,11 +22,13 @@ require (
 require (
 	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
 	github.com/getsentry/raven-go v0.2.0 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7 // indirect
 	gitlab.com/distributed_lab/lorem v0.2.0 // indirect
 )
 
 require (
+	github.com/acs-dl/auth-svc v0.0.0-20230922123331-e681d51de0be
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
