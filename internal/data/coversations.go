@@ -7,10 +7,10 @@ type Conversations interface {
 	Delete() error
 	Get() (*Conversation, error)
 	Select() ([]Conversation, error)
+	SearchBy(search string) Conversations
 
 	FilterByTitles(titles ...string) Conversations
 	FilterByIds(ids ...string) Conversations
-	//FilterByAccessHash(accessHash *int64) Conversations
 }
 
 type Conversation struct {

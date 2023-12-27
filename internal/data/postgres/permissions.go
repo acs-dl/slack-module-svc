@@ -22,7 +22,6 @@ const (
 	permissionsLinkColumn        = permissionsTableName + ".link"
 	permissonBillColumn          = permissionsTableName + ".bill"
 	permissionsSubmoduleIdColumn = permissionsTableName + ".submodule_id"
-	//permissionsSubmoduleAccessHashColumn = permissionsTableName + ".submodule_access_hash"
 	permissionsAccessLevelColumn = permissionsTableName + ".access_level"
 	permissionsCreatedAtColumn   = permissionsTableName + ".created_at"
 	permissionsUpdatedAtColumn   = permissionsTableName + ".updated_at"

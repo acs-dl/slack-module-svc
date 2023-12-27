@@ -2,6 +2,9 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/fatih/structs"
@@ -86,6 +89,15 @@ func (r ConversationsQ) Delete() error {
 	}
 
 	return nil
+}
+
+func (q ConversationsQ) SearchBy(search string) data.Conversations {
+	search = strings.Replace(search, " ", "%", -1)
+	search = fmt.Sprint("%", search, "%")
+
+	q.selectBuilder = q.selectBuilder.Where(sq.ILike{conversationsTitleColumn: search})
+
+	return q
 }
 
 func (r ConversationsQ) FilterByTitles(titles ...string) data.Conversations {
