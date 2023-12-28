@@ -25,7 +25,7 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUsers = append(unverifiedUsers, data.СonvertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -52,17 +52,5 @@ func (w *Worker) buildMessage(uuid string, payload []byte) *message.Message {
 		UUID:     uuid,
 		Metadata: nil,
 		Payload:  payload,
-	}
-}
-
-func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-	return data.UnverifiedUser{
-		CreatedAt: user.CreatedAt,
-		Module:    data.ModuleName,
-		Submodule: submodule,
-		ModuleId:  user.SlackId,
-		Username:  user.Username,
-		RealName:  user.Realname,
-		SlackId:   user.SlackId,
 	}
 }

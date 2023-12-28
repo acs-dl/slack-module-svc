@@ -26,7 +26,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 			continue
 		}
 
-		unverifiedUser := convertUserToUnverifiedUser(users[i], permission.Link)
+		unverifiedUser := data.СonvertUserToUnverifiedUser(users[i], permission.Link)
 
 		unverifiedUsers = append(unverifiedUsers, unverifiedUser)
 	}
@@ -53,7 +53,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 func (p *processor) SendDeleteUser(uuid string, user data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 
-	unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(user, ""))
+	unverifiedUsers = append(unverifiedUsers, data.СonvertUserToUnverifiedUser(user, ""))
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
 		Action: DeleteUsersAction,
@@ -79,18 +79,6 @@ func (p *processor) buildMessage(uuid string, payload []byte) *message.Message {
 		UUID:     uuid,
 		Metadata: nil,
 		Payload:  payload,
-	}
-}
-
-func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-	return data.UnverifiedUser{
-		CreatedAt: user.CreatedAt,
-		Module:    data.ModuleName,
-		Submodule: submodule,
-		ModuleId:  user.SlackId,
-		Username:  user.Username,
-		RealName:  user.Realname,
-		SlackId:   user.SlackId,
 	}
 }
 

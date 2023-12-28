@@ -5,7 +5,6 @@ import (
 )
 
 func (s *slackStruct) WorkspaceName() (string, error) {
-
 	team, err := s.userAdminClient.GetTeamInfo()
 	if err != nil {
 		return "", errors.Wrap(err, "Error retrieving team info for the transferred token.")
