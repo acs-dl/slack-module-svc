@@ -1,14 +1,15 @@
-package slack_client
+package slack
 
 import (
 	"fmt"
-	"github.com/slack-go/slack"
 	"time"
+
+	"github.com/slack-go/slack"
 
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *slackStruct) ConversationFromApi(title string) ([]Conversation, error) {
+func (s *client) ConversationFromApi(title string) ([]Conversation, error) {
 	chats, err := s.getConversationFlow(title)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get chat `%s`", title))
@@ -18,7 +19,7 @@ func (s *slackStruct) ConversationFromApi(title string) ([]Conversation, error) 
 	return chats, nil
 }
 
-func (s *slackStruct) getConversationFlow(title string) ([]Conversation, error) {
+func (s *client) getConversationFlow(title string) ([]Conversation, error) {
 	chats, err := s.findConversationByTitle(title)
 	if err != nil {
 		return nil, err
@@ -27,7 +28,7 @@ func (s *slackStruct) getConversationFlow(title string) ([]Conversation, error) 
 	return chats, nil
 }
 
-func (s *slackStruct) findConversationByTitle(title string) ([]Conversation, error) {
+func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
 
 	//TODO: maybe use pq?
 	var allConversations []Conversation

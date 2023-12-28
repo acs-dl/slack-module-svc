@@ -6,7 +6,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/acs-dl/slack-module-svc/internal/slack_client"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -77,11 +77,11 @@ func (p *processor) handleErrorWithMessageActionID(requestID, message string, er
 	return errors.Wrap(err, message)
 }
 
-func (p *processor) getConversations(link string) ([]slack_client.Conversation, error) {
+func (p *processor) getConversations(link string) ([]slack.Conversation, error) {
 	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.ConversationFromApi), []any{any(link)}, pqueue.LowPriority)
 }
 
-func (p *processor) getUsersForChat(chat slack_client.Conversation) ([]data.User, error) {
+func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error) {
 	users, err := helpers.Users(p.pqueues.SuperUserPQueue, any(p.client.ConversationUsersFromApi), []any{any(chat)}, pqueue.LowPriority)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (p *processor) getWorkspaceName() (string, error) {
 	)
 }
 
-func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack_client.Conversation, usersToUnverified *[]data.User) error {
+func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack.Conversation, usersToUnverified *[]data.User) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
 		if err := p.usersQ.Upsert(user); err != nil {
@@ -137,7 +137,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 	})
 }
 
-func (p *processor) storeChatInDatabaseSafe(chat *slack_client.Conversation) error {
+func (p *processor) storeChatInDatabaseSafe(chat *slack.Conversation) error {
 	err := p.conversationsQ.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,

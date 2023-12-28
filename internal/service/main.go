@@ -27,7 +27,7 @@ type svc struct {
 }
 
 var services = []svc{
-	// {"slack", slack_client.NewSlack, nil, slack_client.CtxSlackClientInstance},
+	// {"slack", slack_client.New, nil, slack_client.CtxSlackClientInstance},
 	{"sender", sender.NewSenderAsInterface, sender.RunSenderAsInterface, sender.CtxSenderInstance},
 	{"processor", processor.NewProcessorAsInterface, nil, processor.CtxProcessorInstance},
 	{"worker", worker.NewWorkerAsInterface, worker.RunWorkerAsInterface, worker.CtxWorkerInstance},

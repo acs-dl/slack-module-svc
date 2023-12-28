@@ -9,7 +9,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data/postgres"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
-	"github.com/acs-dl/slack-module-svc/internal/slack_client"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 )
 
@@ -29,7 +29,7 @@ type Processor interface {
 
 type processor struct {
 	log             *logan.Entry
-	client          slack_client.ClientForSlack
+	client          slack.Client
 	permissionsQ    data.Permissions
 	usersQ          data.Users
 	conversationsQ  data.Conversations
@@ -43,7 +43,7 @@ type processor struct {
 func NewProcessorAsInterface(cfg config.Config, ctx context.Context) interface{} {
 	return interface{}(&processor{
 		log:             cfg.Log().WithField("service", ServiceName),
-		client:          slack_client.NewSlack(cfg),
+		client:          slack.New(cfg),
 		permissionsQ:    postgres.NewPermissionsQ(cfg.DB()),
 		usersQ:          postgres.NewUsersQ(cfg.DB()),
 		conversationsQ:  postgres.NewConversationsQ(cfg.DB()),

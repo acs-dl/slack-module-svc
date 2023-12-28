@@ -1,4 +1,4 @@
-package slack_client
+package slack
 
 import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -6,7 +6,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *slackStruct) ConversationUsersFromApi(conversation Conversation) ([]data.User, error) {
+func (s *client) ConversationUsersFromApi(conversation Conversation) ([]data.User, error) {
 
 	users, err := s.getChatMembers(conversation)
 	if err != nil {
@@ -17,7 +17,7 @@ func (s *slackStruct) ConversationUsersFromApi(conversation Conversation) ([]dat
 	return users, nil
 }
 
-func (s *slackStruct) getChatMembers(conversation Conversation) ([]data.User, error) {
+func (s *client) getChatMembers(conversation Conversation) ([]data.User, error) {
 	users, err := s.getAllUsers(conversation.Id)
 	if err != nil {
 		s.log.Errorf("failed to get all users")
@@ -27,11 +27,8 @@ func (s *slackStruct) getChatMembers(conversation Conversation) ([]data.User, er
 	return users, nil
 }
 
-func (s *slackStruct) getAllUsers(id string) ([]data.User, error) {
-	users := make([]data.User, 0)
-	var err error = nil
-
-	users, err = s.getAllUsersFromConversation(id)
+func (s *client) getAllUsers(id string) ([]data.User, error) {
+	users, err := s.getAllUsersFromConversation(id)
 	if err != nil {
 		s.log.Errorf("failed to get all users from chat")
 		return nil, err
@@ -41,7 +38,7 @@ func (s *slackStruct) getAllUsers(id string) ([]data.User, error) {
 	return users, nil
 }
 
-func (s *slackStruct) getAllUsersFromConversation(chatId string) ([]data.User, error) {
+func (s *client) getAllUsersFromConversation(chatId string) ([]data.User, error) {
 
 	//TODO: maybe youse priority queue?
 	var users []data.User
@@ -82,7 +79,7 @@ func (s *slackStruct) getAllUsersFromConversation(chatId string) ([]data.User, e
 	return users, nil
 }
 
-func (s *slackStruct) userStatus(user *slack.User) string {
+func (s *client) userStatus(user *slack.User) string {
 	switch {
 	case user.IsAdmin:
 		return "admin"
