@@ -6,7 +6,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/data/manager"
-	"github.com/acs-dl/slack-module-svc/internal/data/postgres"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
 	"github.com/acs-dl/slack-module-svc/internal/slack"
@@ -30,7 +29,6 @@ type Processor interface {
 type processor struct {
 	log             *logan.Entry
 	client          slack.Client
-	conversationsQ  data.Conversations
 	managerQ        *manager.Manager
 	sender          sender.Sender
 	pqueues         *pqueue.PQueues
@@ -42,7 +40,6 @@ func New(cfg config.Config, ctx context.Context) Processor {
 	return &processor{
 		log:             cfg.Log().WithField("service", ServiceName),
 		client:          slack.New(cfg),
-		conversationsQ:  postgres.NewConversationsQ(cfg.DB()),
 		managerQ:        manager.NewManager(cfg.DB()),
 		sender:          sender.SenderInstance(ctx),
 		pqueues:         pqueue.PQueuesInstance(ctx),

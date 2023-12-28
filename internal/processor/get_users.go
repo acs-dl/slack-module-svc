@@ -138,7 +138,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 }
 
 func (p *processor) storeChatInDatabaseSafe(chat *slack.Conversation) error {
-	err := p.conversationsQ.Upsert(data.Conversation{
+	err := p.managerQ.Conversations.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,
 		MembersAmount: chat.MembersAmount,
