@@ -37,7 +37,7 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
-	err = w.sender.SendMessageToCustomChannel(data.UnverifiedService, w.buildMessage(uuid, marshaledPayload))
+	err = w.sender.SendMessageToCustomChannel(w.unverifiedTopic, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
 		w.logger.WithError(err).Errorf("failed to publish users to `slack-module`")
 		return errors.Wrap(err, "failed to publish users to `slack-module`")

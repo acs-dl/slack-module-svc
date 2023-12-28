@@ -40,9 +40,10 @@ type Worker struct {
 	runnerDelay   time.Duration
 	estimatedTime time.Duration
 
-	client  slack_client.ClientForSlack
-	pqueues *pqueue.PQueues
-	sender  *sender.Sender
+	client          slack_client.ClientForSlack
+	pqueues         *pqueue.PQueues
+	sender          *sender.Sender
+	unverifiedTopic string
 }
 
 func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
@@ -55,9 +56,10 @@ func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
 		runnerDelay:   cfg.Runners().Worker,
 		estimatedTime: time.Duration(0),
 
-		client:  slack_client.NewSlack(cfg),
-		pqueues: pqueue.PQueuesInstance(ctx),
-		sender:  sender.SenderInstance(ctx),
+		client:          slack_client.NewSlack(cfg),
+		pqueues:         pqueue.PQueuesInstance(ctx),
+		sender:          sender.SenderInstance(ctx),
+		unverifiedTopic: cfg.Amqp().Unverified,
 	})
 }
 

@@ -40,7 +40,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
-	err = p.sender.SendMessageToCustomChannel(data.UnverifiedService, p.buildMessage(uuid, marshaledPayload))
+	err = p.sender.SendMessageToCustomChannel(p.unverifiedTopic, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to publish users to `slack-module`")
 		return errors.Wrap(err, "failed to publish users to `slack-module`")
@@ -64,7 +64,7 @@ func (p *processor) SendDeleteUser(uuid string, user data.User) error {
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
-	err = p.sender.SendMessageToCustomChannel(data.UnverifiedService, p.buildMessage(uuid, marshaledPayload))
+	err = p.sender.SendMessageToCustomChannel(p.unverifiedTopic, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to publish users to `unverified-svc`")
 		return errors.Wrap(err, "failed to publish users to `unverified-svc`")
@@ -101,7 +101,7 @@ func (p *processor) sendUpdateUserSlack(uuid string, msg data.ModulePayload) err
 		return errors.Wrap(err, "failed to marshal update slack info")
 	}
 
-	err = p.sender.SendMessageToCustomChannel(data.IdentityService, p.buildMessage(uuid, marshaledPayload))
+	err = p.sender.SendMessageToCustomChannel(p.identityTopic, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to publish users to `identity-svc`")
 		return errors.Wrap(err, "failed to publish users to `identity-svc`")

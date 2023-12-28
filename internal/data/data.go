@@ -1,9 +1,7 @@
 package data
 
 const (
-	ModuleName        = "slack"
-	UnverifiedService = "unverified-svc"
-	IdentityService   = "identity"
+	ModuleName = "slack"
 )
 
 type ModulePayload struct {
