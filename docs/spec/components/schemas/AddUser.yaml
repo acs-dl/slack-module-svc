@@ -29,4 +29,5 @@ properties:
   slack_id:
     type: string
     description: id from slack
+    example: U06BHZDSE70
     
