@@ -101,7 +101,7 @@ func (p *processor) getWorkspaceName() (string, error) {
 func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack.Conversation, usersToUnverified *[]data.User) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
-		if err := p.usersQ.Upsert(user); err != nil {
+		if err := p.managerQ.Users.Upsert(user); err != nil {
 			p.log.WithError(err).Errorf("failed to create user in db for message action with id `%s`", msg.RequestId)
 			return errors.Wrap(err, "failed to create user in user db")
 		}
@@ -118,7 +118,7 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 		// TODO: get billable info for the user
 		//bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
 
-		if err := p.permissionsQ.Upsert(data.Permission{
+		if err := p.managerQ.Permissions.Upsert(data.Permission{
 			RequestId:   msg.RequestId,
 			WorkSpace:   *workspaceName,
 			SlackId:     user.SlackId,

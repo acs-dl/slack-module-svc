@@ -28,7 +28,7 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 
 func (p *processor) updateUserInDB(user *data.User, userID int64) error {
 	user.Id = &userID
-	if err := p.usersQ.Upsert(*user); err != nil {
+	if err := p.managerQ.Users.Upsert(*user); err != nil {
 		p.log.WithError(err).Errorf("failed to upsert user in db")
 		return errors.Wrap(err, "failed to upsert user in db")
 	}
@@ -49,7 +49,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, err
 	}
 
-	user, err := p.usersQ.FilterByUsername(msg.Username).Get()
+	user, err := p.managerQ.Users.FilterByUsername(msg.Username).Get()
 	if err != nil {
 		p.log.WithError(err).Errorf("failed to get user by username from db")
 		return data.FAILURE, err

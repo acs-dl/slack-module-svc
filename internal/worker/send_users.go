@@ -9,7 +9,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (w *Worker) sendUsers(uuid string, users []data.User) error {
+func (w *worker) sendUsers(uuid string, users []data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 	for i := range users {
 		if users[i].Id != nil {
@@ -49,7 +49,7 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 	return nil
 }
 
-func (w *Worker) buildMessage(uuid string, payload []byte) *message.Message {
+func (w *worker) buildMessage(uuid string, payload []byte) *message.Message {
 	return &message.Message{
 		UUID:     uuid,
 		Metadata: nil,

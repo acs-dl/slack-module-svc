@@ -25,13 +25,15 @@ const (
 	SetUsersAction = "set_users"
 )
 
-type IWorker interface {
-	Run(ctx context.Context)
+type Worker interface {
+	Run(ctx context.Context) error
 	ProcessPermissions(_ context.Context) error
 	GetEstimatedTime() time.Duration
+	RefreshModule() (string, error)
+	RefreshSubmodules(msg data.ModulePayload) (string, error)
 }
 
-type Worker struct {
+type worker struct {
 	logger        *logan.Entry
 	processor     processor.Processor
 	linksQ        data.Links
@@ -42,12 +44,12 @@ type Worker struct {
 
 	client          slack2.Client
 	pqueues         *pqueue.PQueues
-	sender          *sender.Sender
+	sender          sender.Sender
 	unverifiedTopic string
 }
 
-func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
-	return interface{}(&Worker{
+func New(cfg config.Config, ctx context.Context) Worker {
+	return &worker{
 		logger:        cfg.Log().WithField("runner", ServiceName),
 		processor:     processor.ProcessorInstance(ctx),
 		linksQ:        postgres.NewLinksQ(cfg.DB()),
@@ -60,10 +62,10 @@ func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
 		pqueues:         pqueue.PQueuesInstance(ctx),
 		sender:          sender.SenderInstance(ctx),
 		unverifiedTopic: cfg.Amqp().Unverified,
-	})
+	}
 }
 
-func (w *Worker) Run(ctx context.Context) error {
+func (w *worker) Run(ctx context.Context) error {
 	running.WithBackOff(
 		ctx,
 		w.logger,
@@ -73,10 +75,11 @@ func (w *Worker) Run(ctx context.Context) error {
 		w.runnerDelay,
 		w.runnerDelay,
 	)
+
 	return nil
 }
 
-func (w *Worker) ProcessPermissions(_ context.Context) error {
+func (w *worker) ProcessPermissions(_ context.Context) error {
 	w.logger.Info("getting users from api")
 	startTime := time.Now()
 
@@ -160,7 +163,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	return nil
 }
 
-func (w *Worker) upsertUsers(user slack.User) error {
+func (w *worker) upsertUsers(user slack.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,
@@ -177,7 +180,7 @@ func (w *Worker) upsertUsers(user slack.User) error {
 	return nil
 }
 
-func (w *Worker) upsertPermissions(user slack.User, workspaceName string) error {
+func (w *worker) upsertPermissions(user slack.User, workspaceName string) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.ConversationsForUser),
@@ -212,7 +215,7 @@ func (w *Worker) upsertPermissions(user slack.User, workspaceName string) error 
 	return nil
 }
 
-func (w *Worker) userStatus(user *slack.User) string {
+func (w *worker) userStatus(user *slack.User) string {
 	switch {
 	case user.IsAdmin:
 		return "admin"
@@ -229,7 +232,7 @@ func (w *Worker) userStatus(user *slack.User) string {
 	}
 }
 
-func (w *Worker) RefreshModule() (string, error) {
+func (w *worker) RefreshModule() (string, error) {
 	w.logger.Infof("started refresh module")
 
 	err := w.ProcessPermissions(context.Background())
@@ -241,7 +244,7 @@ func (w *Worker) RefreshModule() (string, error) {
 	return data.SUCCESS, nil
 }
 
-func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
+func (w *worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 	w.logger.Infof("started refresh submodules")
 
 	for _, link := range msg.Links {
@@ -259,7 +262,7 @@ func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 	return data.SUCCESS, nil
 }
 
-func (w *Worker) createPermissions(link string) error {
+func (w *worker) createPermissions(link string) error {
 	if err := w.processor.HandleGetUsersAction(data.ModulePayload{
 		RequestId: "from-worker",
 		Link:      link,
@@ -271,6 +274,6 @@ func (w *Worker) createPermissions(link string) error {
 	return nil
 }
 
-func (w *Worker) GetEstimatedTime() time.Duration {
+func (w *worker) GetEstimatedTime() time.Duration {
 	return w.estimatedTime
 }

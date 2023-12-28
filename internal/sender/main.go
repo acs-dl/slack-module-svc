@@ -17,7 +17,12 @@ import (
 
 const ServiceName = data.ModuleName + "-sender"
 
-type Sender struct {
+type Sender interface {
+	Run(context.Context) error
+	SendMessageToCustomChannel(topic string, msg *message.Message) error
+}
+
+type sender struct {
 	publisher   *amqp.Publisher
 	responsesQ  data.Responses
 	log         *logan.Entry
@@ -25,17 +30,17 @@ type Sender struct {
 	runnerDelay time.Duration
 }
 
-func NewSenderAsInterface(cfg config.Config, _ context.Context) interface{} {
-	return interface{}(&Sender{
+func New(cfg config.Config) Sender {
+	return &sender{
 		publisher:   cfg.Amqp().Publisher,
 		responsesQ:  postgres.NewResponsesQ(cfg.DB()),
 		log:         logan.New().WithField("service", ServiceName),
 		topic:       cfg.Amqp().Orchestrator,
 		runnerDelay: cfg.Runners().Sender,
-	})
+	}
 }
 
-func (s *Sender) Run(ctx context.Context) {
+func (s *sender) Run(ctx context.Context) error {
 	go running.WithBackOff(ctx, s.log,
 		ServiceName,
 		s.processMessages,
@@ -43,9 +48,11 @@ func (s *Sender) Run(ctx context.Context) {
 		s.runnerDelay,
 		s.runnerDelay,
 	)
+
+	return nil
 }
 
-func (s *Sender) processMessages(ctx context.Context) error {
+func (s *sender) processMessages(ctx context.Context) error {
 	s.log.Info("started processing responses")
 
 	responses, err := s.responsesQ.Select()
@@ -74,7 +81,7 @@ func (s *Sender) processMessages(ctx context.Context) error {
 	return nil
 }
 
-func (s *Sender) buildResponse(response data.Response) *message.Message {
+func (s *sender) buildResponse(response data.Response) *message.Message {
 	marshaled, err := json.Marshal(response)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to marshal response")
@@ -87,7 +94,7 @@ func (s *Sender) buildResponse(response data.Response) *message.Message {
 	}
 }
 
-func (s *Sender) SendMessageToCustomChannel(topic string, msg *message.Message) error {
+func (s *sender) SendMessageToCustomChannel(topic string, msg *message.Message) error {
 	err := (*s.publisher).Publish(topic, msg)
 	if err != nil {
 		s.log.WithError(err).Errorf("failed to send msg `%s to `%s`", msg.UUID, topic)

@@ -10,7 +10,7 @@ import (
 	"gitlab.com/distributed_lab/ape"
 )
 
-func (r *Router) apiRouter() chi.Router {
+func (r *router) apiRouter() chi.Router {
 	router := chi.NewRouter()
 
 	logger := r.cfg.Log().WithField("service", fmt.Sprintf("%s-api", data.ModuleName))

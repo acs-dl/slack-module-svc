@@ -16,7 +16,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 		if users[i].Id != nil {
 			continue
 		}
-		permission, err := p.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
+		permission, err := p.managerQ.Permissions.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 
 		if err != nil {
 			p.log.WithError(err).Errorf("failed to select permissions by date `%s`", users[i].CreatedAt.String())

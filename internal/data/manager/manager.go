@@ -7,24 +7,24 @@ import (
 )
 
 type Manager struct {
-	db *pgdb.DB
+	Db *pgdb.DB
 
-	responses   data.Responses
-	permissions data.Permissions
-	users       data.Users
-	links       data.Links
+	Responses   data.Responses
+	Permissions data.Permissions
+	Users       data.Users
+	Links       data.Links
 }
 
 func NewManager(db *pgdb.DB) *Manager {
 	return &Manager{
-		db:          db,
-		responses:   postgres.NewResponsesQ(db),
-		permissions: postgres.NewPermissionsQ(db),
-		users:       postgres.NewUsersQ(db),
-		links:       postgres.NewLinksQ(db),
+		Db:          db,
+		Responses:   postgres.NewResponsesQ(db),
+		Permissions: postgres.NewPermissionsQ(db),
+		Users:       postgres.NewUsersQ(db),
+		Links:       postgres.NewLinksQ(db),
 	}
 }
 
 func (m *Manager) Transaction(fn func() error) error {
-	return m.db.Transaction(fn)
+	return m.Db.Transaction(fn)
 }

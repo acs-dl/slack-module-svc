@@ -1,10 +1,11 @@
 package cli
 
 import (
-	"gitlab.com/distributed_lab/logan/v3"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"gitlab.com/distributed_lab/logan/v3"
 
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -23,7 +24,7 @@ func Run(args []string) bool {
 	defer func() {
 		if rvr := recover(); rvr != nil {
 			log.WithRecover(rvr).Error("app panicked")
-			err := registrator.NewRegistrar(cfg).UnregisterModule()
+			err := registrator.New(cfg).UnregisterModule()
 			if err != nil {
 				log.WithError(err).Errorf("failed to unregister module %s", data.ModuleName)
 			}
@@ -41,7 +42,7 @@ func Run(args []string) bool {
 	go func() {
 		sig := <-signalChannel
 		log.Infof("service was interrupted by signal `%s`", sig.String())
-		err := registrator.NewRegistrar(cfg).UnregisterModule()
+		err := registrator.New(cfg).UnregisterModule()
 		if err != nil {
 			log.WithError(err).Errorf("failed to unregister module %s", data.ModuleName)
 			os.Exit(1)
