@@ -107,7 +107,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	for _, user := range usersStore {
 
 		w.logger.Info("inserting user into table 'users' from db")
-		err := w.retrieveAndUpsertUsers(user)
+		err := w.upsertUsers(user)
 		if err != nil {
 			w.logger.WithError(err).Errorf("failed to insert users into table 'users' from db ")
 			return errors.Wrap(err, "some error while inserting users into table 'users' from db")
@@ -138,7 +138,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 		fmt.Printf("len %d\n", len(usersToUnverified))
 
 		w.logger.Info("inserting permissions into table 'permissions' from db")
-		err = w.retrieveAndUpsertPermissions(user, workspaceName)
+		err = w.upsertPermissions(user, workspaceName)
 		if err != nil {
 			w.logger.WithError(err).Errorf("failed to process permissions for user")
 			return errors.Wrap(err, "some error while processing user permissions")
@@ -160,7 +160,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	return nil
 }
 
-func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
+func (w *Worker) upsertUsers(user slack.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,
@@ -177,7 +177,7 @@ func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
 	return nil
 }
 
-func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName string) error {
+func (w *Worker) upsertPermissions(user slack.User, workspaceName string) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.ConversationsForUser),

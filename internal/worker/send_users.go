@@ -5,6 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -39,8 +40,9 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 
 	err = w.sender.SendMessageToCustomChannel(w.unverifiedTopic, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to publish users to `slack-module`")
-		return errors.Wrap(err, "failed to publish users to `slack-module`")
+		return errors.Wrap(err, "failed to publish users", logan.F{
+			"topic": w.unverifiedTopic,
+		})
 	}
 
 	w.logger.Infof("successfully published users to `unverified-svc`")
