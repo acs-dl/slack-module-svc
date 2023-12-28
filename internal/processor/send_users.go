@@ -5,6 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -26,9 +27,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 			continue
 		}
 
-		unverifiedUser := convertUserToUnverifiedUser(users[i], permission.Link)
-
-		unverifiedUsers = append(unverifiedUsers, unverifiedUser)
+		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -42,8 +41,9 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 
 	err = p.sender.SendMessageToCustomChannel(p.unverifiedTopic, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		p.log.WithError(err).Errorf("failed to publish users to `slack-module`")
-		return errors.Wrap(err, "failed to publish users to `slack-module`")
+		return errors.Wrap(err, "failed to publish users", logan.F{
+			"topic": p.unverifiedTopic,
+		})
 	}
 
 	p.log.Infof("successfully published users to `unverified-svc`")

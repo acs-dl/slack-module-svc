@@ -92,9 +92,8 @@ func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
 			err = r.processMessage(msg)
 			if err != nil {
 				r.log.WithError(err).Error("failed to process message ", msg.UUID)
-			} else {
-				msg.Ack()
 			}
+			msg.Ack()
 		}
 	}
 }
