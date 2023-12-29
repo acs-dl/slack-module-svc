@@ -6,10 +6,9 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/data/manager"
-	"github.com/acs-dl/slack-module-svc/internal/data/postgres"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
-	"github.com/acs-dl/slack-module-svc/internal/slack_client"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 )
 
@@ -17,7 +16,6 @@ const (
 	ServiceName = data.ModuleName + "-processor"
 
 	UpdateSlackAction = "update_slack"
-
 	SetUsersAction    = "set_users"
 	DeleteUsersAction = "delete_users"
 )
@@ -29,34 +27,28 @@ type Processor interface {
 
 type processor struct {
 	log             *logan.Entry
-	client          slack_client.ClientForSlack
-	permissionsQ    data.Permissions
-	usersQ          data.Users
-	conversationsQ  data.Conversations
+	client          slack.Client
 	managerQ        *manager.Manager
-	sender          *sender.Sender
+	sender          sender.Sender
 	pqueues         *pqueue.PQueues
 	unverifiedTopic string
 	identityTopic   string
 }
 
-func NewProcessorAsInterface(cfg config.Config, ctx context.Context) interface{} {
-	return interface{}(&processor{
+func New(cfg config.Config, ctx context.Context) Processor {
+	return &processor{
 		log:             cfg.Log().WithField("service", ServiceName),
-		client:          slack_client.NewSlack(cfg),
-		permissionsQ:    postgres.NewPermissionsQ(cfg.DB()),
-		usersQ:          postgres.NewUsersQ(cfg.DB()),
-		conversationsQ:  postgres.NewConversationsQ(cfg.DB()),
+		client:          slack.New(cfg),
 		managerQ:        manager.NewManager(cfg.DB()),
 		sender:          sender.SenderInstance(ctx),
 		pqueues:         pqueue.PQueuesInstance(ctx),
 		unverifiedTopic: cfg.Amqp().Unverified,
 		identityTopic:   cfg.Amqp().Identity,
-	})
+	}
 }
 
 func ProcessorInstance(ctx context.Context) Processor {
-	return ctx.Value(ServiceName).(Processor)
+	return ctx.Value(ServiceName).(*processor)
 }
 
 func CtxProcessorInstance(entry interface{}, ctx context.Context) context.Context {

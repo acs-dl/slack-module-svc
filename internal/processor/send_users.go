@@ -10,14 +10,13 @@ import (
 )
 
 func (p *processor) sendUsers(uuid string, users []data.User) error {
-
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 	for i := range users {
 		if users[i].Id != nil {
 			continue
 		}
 
-		permission, err := p.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
+		permission, err := p.managerQ.Permissions.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
 			return errors.Wrap(err, "failed to select permissions by date", logan.F{
 				"date": users[i].CreatedAt.String(),
@@ -28,7 +27,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUsers = append(unverifiedUsers, data.ConvertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -42,7 +41,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 	err = p.sender.SendMessageToCustomChannel(p.unverifiedTopic, p.buildMessage(uuid, marshaledPayload))
 	if err != nil {
 		return errors.Wrap(err, "failed to publish users", logan.F{
-			"topic": data.UnverifiedService,
+			"topic": p.unverifiedTopic,
 		})
 	}
 
@@ -52,7 +51,7 @@ func (p *processor) sendUsers(uuid string, users []data.User) error {
 
 func (p *processor) SendDeleteUser(uuid string, user data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
-	unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(user, ""))
+	unverifiedUsers = append(unverifiedUsers, data.ConvertUserToUnverifiedUser(user, ""))
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
 		Action: DeleteUsersAction,
 		Users:  unverifiedUsers,
@@ -77,18 +76,6 @@ func (p *processor) buildMessage(uuid string, payload []byte) *message.Message {
 		UUID:     uuid,
 		Metadata: nil,
 		Payload:  payload,
-	}
-}
-
-func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-	return data.UnverifiedUser{
-		CreatedAt: user.CreatedAt,
-		Module:    data.ModuleName,
-		Submodule: submodule,
-		ModuleId:  user.SlackId,
-		Username:  user.Username,
-		RealName:  user.Realname,
-		SlackId:   user.SlackId,
 	}
 }
 

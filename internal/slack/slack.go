@@ -1,4 +1,4 @@
-package slack_client
+package slack
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3"
 )
 
-type ClientForSlack interface {
+type Client interface {
 	UserFromApi(userId string) (*data.User, error)
 	FetchUsers() ([]slack.User, error)
 	WorkspaceName() (string, error)
@@ -20,7 +20,7 @@ type ClientForSlack interface {
 	ConversationUsersFromApi(conversation Conversation) ([]data.User, error)
 }
 
-type slackStruct struct {
+type client struct {
 	log             *logan.Entry
 	userAdminClient *slack.Client
 	superBotClient  *slack.Client
@@ -32,16 +32,16 @@ type Conversation struct {
 	MembersAmount int64
 }
 
-func NewSlack(cfg config.Config) ClientForSlack {
+func New(cfg config.Config) Client {
 	config := cfg.SlackParams()
 
-	return &slackStruct{
+	return &client{
 		log:             cfg.Log(),
 		userAdminClient: slack.New(config.UserToken),
 		superBotClient:  slack.New(config.BotToken),
 	}
 }
 
-func SlackClientInstance(ctx context.Context) ClientForSlack {
-	return ctx.Value("slack").(ClientForSlack)
+func ClientInstance(ctx context.Context) Client {
+	return ctx.Value("slack").(Client)
 }

@@ -2,14 +2,14 @@ package worker
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (w *Worker) sendUsers(uuid string, users []data.User) error {
+func (w *worker) sendUsers(uuid string, users []data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 	for i := range users {
 		if users[i].Id != nil {
@@ -18,14 +18,16 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 
 		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to select permissions by date `%s`", users[i].CreatedAt.String()))
+			return errors.Wrap(err, "failed to select permissions by date", logan.F{
+				"date": users[i].CreatedAt.String(),
+			})
 		}
 
 		if permission == nil {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUsers = append(unverifiedUsers, data.ConvertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -36,31 +38,21 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
-	err = w.sender.SendMessageToCustomChannel(data.UnverifiedService, w.buildMessage(uuid, marshaledPayload))
+	err = w.sender.SendMessageToCustomChannel(w.unverifiedTopic, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		return errors.Wrap(err, "failed to publish users to `slack-module`")
+		return errors.Wrap(err, "failed to publish users", logan.F{
+			"topic": w.unverifiedTopic,
+		})
 	}
 
 	w.logger.Infof("successfully published users to `unverified-svc`")
 	return nil
 }
 
-func (w *Worker) buildMessage(uuid string, payload []byte) *message.Message {
+func (w *worker) buildMessage(uuid string, payload []byte) *message.Message {
 	return &message.Message{
 		UUID:     uuid,
 		Metadata: nil,
 		Payload:  payload,
-	}
-}
-
-func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-	return data.UnverifiedUser{
-		CreatedAt: user.CreatedAt,
-		Module:    data.ModuleName,
-		Submodule: submodule,
-		ModuleId:  user.SlackId,
-		Username:  user.Username,
-		RealName:  user.Realname,
-		SlackId:   user.SlackId,
 	}
 }

@@ -1,9 +1,7 @@
 package data
 
 const (
-	ModuleName        = "slack"
-	UnverifiedService = "unverified-svc"
-	IdentityService   = "identity"
+	ModuleName = "slack"
 )
 
 type ModulePayload struct {
@@ -33,4 +31,12 @@ var Roles = map[string]string{
 	RestrictedUser: "Restricted User",
 	Bot:            "Bot",
 	App:            "App",
+}
+
+func GetRoles() []interface{} {
+	roles := make([]interface{}, 0, len(Roles))
+	for role := range Roles {
+		roles = append(roles, role)
+	}
+	return roles
 }

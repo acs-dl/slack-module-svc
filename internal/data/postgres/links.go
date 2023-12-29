@@ -63,6 +63,7 @@ func (r LinksQ) Select() ([]data.Link, error) {
 func (r LinksQ) Insert(link data.Link) error {
 	insertStmt := sq.Insert(linksTableName).SetMap(structs.Map(link)).Suffix("ON CONFLICT (link) DO NOTHING")
 	err := r.db.Exec(insertStmt)
+	
 	return errors.Wrap(err, "failed to insert link")
 }
 

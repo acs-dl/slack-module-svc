@@ -6,3 +6,4 @@ docs/web_deploy
 vendor/
 slack-module-svc
 bin/
+Makefile

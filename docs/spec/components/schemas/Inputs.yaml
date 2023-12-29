@@ -15,9 +15,13 @@ allOf:
           username:
             type: string
             description: username from slack
+            example: slackbot
           link:
             type: string
             description: link for which would be given access
+            example: general
           access_level:
             type: string
             description: level of access that would be given
+            example: admin
+

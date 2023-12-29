@@ -9,7 +9,7 @@ amqp:
   topic: "slack"
   unverified: "unverified-svc"
   orchestrator: "orchestrator"
-  identity: "identity"
+  identity: "identity-svc"
   publisher: "amqp://guest:guest@localhost:5672/" #slack_publisher
   subscriber: "amqp://guest:guest@localhost:5672/" #slack_receiver
 

@@ -69,7 +69,6 @@ func (q UsersQ) Upsert(user data.User) error {
 	}
 
 	clauses := structs.Map(user)
-
 	updateQuery := sq.Update(" ").
 		Set("username", user.Username).
 		Set("updated_at", time.Now())
@@ -79,7 +78,6 @@ func (q UsersQ) Upsert(user data.User) error {
 	}
 
 	updateStmt, args := updateQuery.MustSql()
-
 	query := sq.Insert(usersTableName).SetMap(clauses).Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...)
 
 	return errors.Wrap(q.db.Exec(query), "failed to insert user")

@@ -2,14 +2,13 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
-	"github.com/acs-dl/slack-module-svc/internal/slack_client"
+	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -26,15 +25,15 @@ const (
 	ProcessUserAction = "process_user"
 )
 
-type IWorker interface {
-	Run(ctx context.Context)
-	ProcessPermissions(ctx context.Context) error
+type Worker interface {
+	Run(ctx context.Context) error
+	ProcessPermissions(_ context.Context) error
+	GetEstimatedTime() time.Duration
 	RefreshModule() (string, error)
 	RefreshSubmodules(msg data.ModulePayload) (string, error)
-	GetEstimatedTime() time.Duration
 }
 
-type Worker struct {
+type worker struct {
 	logger        *logan.Entry
 	processor     processor.Processor
 	linksQ        data.Links
@@ -43,13 +42,14 @@ type Worker struct {
 	runnerDelay   time.Duration
 	estimatedTime time.Duration
 
-	client  slack_client.ClientForSlack
-	pqueues *pqueue.PQueues
-	sender  *sender.Sender
+	client          slackGo.Client
+	pqueues         *pqueue.PQueues
+	sender          sender.Sender
+	unverifiedTopic string
 }
 
-func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
-	return interface{}(&Worker{
+func New(cfg config.Config, ctx context.Context) Worker {
+	return &worker{
 		logger:        cfg.Log().WithField("runner", ServiceName),
 		processor:     processor.ProcessorInstance(ctx),
 		linksQ:        postgres.NewLinksQ(cfg.DB()),
@@ -58,13 +58,14 @@ func NewWorkerAsInterface(cfg config.Config, ctx context.Context) interface{} {
 		runnerDelay:   cfg.Runners().Worker,
 		estimatedTime: time.Duration(0),
 
-		client:  slack_client.NewSlack(cfg),
-		pqueues: pqueue.PQueuesInstance(ctx),
-		sender:  sender.SenderInstance(ctx),
-	})
+		client:          slackGo.New(cfg),
+		pqueues:         pqueue.PQueuesInstance(ctx),
+		sender:          sender.SenderInstance(ctx),
+		unverifiedTopic: cfg.Amqp().Unverified,
+	}
 }
 
-func (w *Worker) Run(ctx context.Context) error {
+func (w *worker) Run(ctx context.Context) error {
 	running.WithBackOff(
 		ctx,
 		w.logger,
@@ -74,13 +75,14 @@ func (w *Worker) Run(ctx context.Context) error {
 		w.runnerDelay,
 		w.runnerDelay,
 	)
+
 	return nil
 }
 
-func (w *Worker) ProcessPermissions(_ context.Context) error {
+func (w *worker) ProcessPermissions(_ context.Context) error {
+	w.logger.Info("getting users from api")
 	startTime := time.Now()
 
-	w.logger.Info("getting users from Slack API")
 	usersStore, err := helpers.GetUsers(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.FetchUsers),
@@ -115,14 +117,17 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	usersToUnverified := make([]data.User, 0)
 	for _, user := range usersStore {
 		w.logger.Info("inserting user into table 'users'")
-		err := w.retrieveAndUpsertUsers(user)
+		err := w.upsertUsers(user)
 		if err != nil {
 			return errors.Wrap(err, "failed to insert user into table 'users'")
 		}
 
 		dbUser, err := w.getUserFromDbBySlackId(user.ID)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to get user id:%s from db for '%s' action", user.ID, ProcessUserAction))
+			return errors.Wrap(err, "failed to get user from db", logan.F{
+				"user_id": user.ID,
+				"action":  ProcessUserAction,
+			})
 		}
 
 		copiedName := user.Name
@@ -138,16 +143,20 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 		usersToUnverified = append(usersToUnverified, userData)
 
 		w.logger.Info("inserting permissions into table 'permissions'")
-		err = w.retrieveAndUpsertPermissions(user, workspaceName, billableInfo)
+		err = w.upsertPermissions(user, workspaceName, billableInfo)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to process permissions for user id:%s", user.ID))
+			return errors.Wrap(err, "failed to process permissions for user", logan.F{
+				"user_id": user.ID,
+			})
 		}
 	}
 
 	msg := data.ModulePayload{}
 	err = w.sendUsers(msg.RequestId, usersToUnverified)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to publish users for message action with id `%s`", msg.RequestId))
+		return errors.Wrap(err, "failed to publish users", logan.F{
+			"action": msg.RequestId,
+		})
 	}
 
 	w.logger.Info("ProcessPermissions completed")
@@ -156,7 +165,7 @@ func (w *Worker) ProcessPermissions(_ context.Context) error {
 	return nil
 }
 
-func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
+func (w *worker) upsertUsers(user slack.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,
@@ -165,13 +174,15 @@ func (w *Worker) retrieveAndUpsertUsers(user slack.User) error {
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to insert user id:%s", user.ID))
+		return errors.Wrap(err, "failed to insert user", logan.F{
+			"user_id": user.ID,
+		})
 	}
 
 	return nil
 }
 
-func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName string, billableInfo map[string]slack.BillingActive) error {
+func (w *worker) upsertPermissions(user slack.User, workspaceName string, billableInfo map[string]slack.BillingActive) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.ConversationsForUser),
@@ -185,7 +196,9 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 	for _, channel := range channels {
 		bill, ok := billableInfo[user.ID]
 		if !ok {
-			return errors.Errorf("failed to get billable info for user id:%s", user.ID)
+			return errors.From(errors.New("failed to get billable info for user"), logan.F{
+				"user_id": user.ID,
+			})
 		}
 
 		err := w.permissionsQ.Upsert(data.Permission{
@@ -200,13 +213,15 @@ func (w *Worker) retrieveAndUpsertPermissions(user slack.User, workspaceName str
 			UpdatedAt:   time.Now(),
 		})
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to insert a permission for user id:%s", user.ID))
+			return errors.Wrap(err, "failed to insert a permission for user", logan.F{
+				"user_id": user.ID,
+			})
 		}
 	}
 	return nil
 }
 
-func (w *Worker) userStatus(user *slack.User) string {
+func (w *worker) userStatus(user *slack.User) string {
 	switch {
 	case user.IsAdmin:
 		return "admin"
@@ -223,7 +238,7 @@ func (w *Worker) userStatus(user *slack.User) string {
 	}
 }
 
-func (w *Worker) RefreshModule() (string, error) {
+func (w *worker) RefreshModule() (string, error) {
 	w.logger.Infof("started refresh module")
 
 	err := w.ProcessPermissions(context.Background())
@@ -235,7 +250,7 @@ func (w *Worker) RefreshModule() (string, error) {
 	return data.SUCCESS, nil
 }
 
-func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
+func (w *worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 	w.logger.Infof("started refresh submodules")
 
 	for _, link := range msg.Links {
@@ -243,7 +258,9 @@ func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 
 		err := w.createPermissions(link)
 		if err != nil {
-			return data.FAILURE, errors.Wrap(err, fmt.Sprintf("failed to create subs for link `%s", link))
+			return data.FAILURE, errors.Wrap(err, "failed to create subs", logan.F{
+				"link": link,
+			})
 		}
 		w.logger.Infof("finished refreshing `%s`", link)
 	}
@@ -252,17 +269,19 @@ func (w *Worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 	return data.SUCCESS, nil
 }
 
-func (w *Worker) createPermissions(link string) error {
+func (w *worker) createPermissions(link string) error {
 	if err := w.processor.HandleGetUsersAction(data.ModulePayload{
 		RequestId: "from-worker",
 		Link:      link,
 	}); err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to get users for link `%s`", link))
+		return errors.Wrap(err, "failed to get users for link", logan.F{
+			"link": link,
+		})
 	}
 
 	return nil
 }
 
-func (w *Worker) GetEstimatedTime() time.Duration {
+func (w *worker) GetEstimatedTime() time.Duration {
 	return w.estimatedTime
 }

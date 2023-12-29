@@ -16,7 +16,7 @@ allOf:
           slack_id:
             type: string
             description: id from slack
-            example: "mhrynenko"
+            example: U06BHZDSE70
           name:
             type: string
             description: name from slack account

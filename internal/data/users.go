@@ -33,6 +33,7 @@ type User struct {
 	SlackId   string    `json:"slack_id" db:"slack_id" structs:"slack_id,omitempty"`    //id from slack_client
 	CreatedAt time.Time `json:"created_at" db:"created_at" structs:"-"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at" structs:"-"`
+
 	// fields to create permission
 	AccessLevel string `json:"-" db:"-" structs:"-"`
 }
@@ -41,8 +42,18 @@ type UnverifiedUser struct {
 	CreatedAt time.Time `json:"created_at"`
 	Module    string    `json:"module"`
 	Submodule string    `json:"submodule"`
-	Username  *string   `json:"username,omitempty"`
-	RealName  *string   `json:"real_name,omitempty"`
-	SlackId   string    `json:"slack_id"`
 	ModuleId  string    `json:"module_id"`
+	Name      *string   `json:"name,omitempty"`
+	Username  *string   `json:"username,omitempty"`
+}
+
+func ConvertUserToUnverifiedUser(user User, submodule string) UnverifiedUser {
+	return UnverifiedUser{
+		CreatedAt: user.CreatedAt,
+		Module:    ModuleName,
+		Submodule: submodule,
+		ModuleId:  user.SlackId,
+		Username:  user.Username,
+		Name:      user.Realname,
+	}
 }

@@ -71,6 +71,7 @@ func (r ConversationsQ) Upsert(conversation data.Conversation) error {
 		Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
 
 	err := r.db.Exec(query)
+	
 	return errors.Wrap(err, "failed to insert conversation")
 }
 

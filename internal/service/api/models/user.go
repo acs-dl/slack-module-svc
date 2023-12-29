@@ -1,8 +1,6 @@
 package models
 
 import (
-	"strconv"
-
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/resources"
 )
@@ -10,10 +8,7 @@ import (
 func NewUserModel(user data.User, id int) resources.User {
 	userAccessLevel := data.Roles[user.AccessLevel]
 	result := resources.User{
-		Key: resources.Key{
-			ID:   strconv.Itoa(id),
-			Type: resources.USER,
-		},
+		Key: resources.NewKeyInt64(int64(id), resources.USER),
 		Attributes: resources.UserAttributes{
 			UserId:      user.Id,
 			Username:    *user.Username,

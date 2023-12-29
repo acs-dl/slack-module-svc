@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/resources"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -48,7 +48,9 @@ func (r *registrar) registerModule(_ context.Context) error {
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("error in response, status %s", res.Status))
+		return errors.From(errors.New("error in response"), logan.F{
+			"status": res.Status,
+		})
 	}
 
 	r.logger.Infof("finished register module `%s`", data.ModuleName)

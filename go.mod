@@ -2,8 +2,6 @@ module github.com/acs-dl/slack-module-svc
 
 go 1.21
 
-toolchain go1.21.5
-
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/ThreeDotsLabs/watermill v1.3.5

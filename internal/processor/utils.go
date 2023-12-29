@@ -7,8 +7,7 @@ import (
 )
 
 func (p *processor) getUserFromDbBySlackId(slackId string) (*data.User, error) {
-	usersQ := p.usersQ.New()
-	user, err := usersQ.FilterBySlackIds(slackId).Get()
+	user, err := p.managerQ.Users.FilterBySlackIds(slackId).Get()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user from db", logan.F{
 			"slack_id": slackId,
@@ -16,7 +15,9 @@ func (p *processor) getUserFromDbBySlackId(slackId string) (*data.User, error) {
 	}
 
 	if user == nil {
-		return nil, errors.Errorf("no user with id %s in module", slackId)
+		return nil, errors.From(errors.New("user not found in module"), logan.F{
+			"slack_id": slackId,
+		})
 	}
 
 	return user, nil
