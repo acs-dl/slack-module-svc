@@ -63,7 +63,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, errors.New("no user was found")
 	}
 
-	user, err = p.getUserFromAPI(user.SlackId)
+	user, err = p.getUser(user.SlackId)
 	if err != nil {
 		return data.FAILURE, errors.Wrap(err, "failed to get user by id from Slack API", logan.F{
 			"slack_id": user.SlackId,
@@ -99,9 +99,9 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 	return data.SUCCESS, nil
 }
 
-func (p *processor) getUserFromAPI(slackID string) (*data.User, error) {
+func (p *processor) getUser(slackID string) (*data.User, error) {
 	user, err := helpers.GetUser(p.pqueues.UserPQueue,
-		any(p.client.UserFromApi),
+		any(p.client.GetUser),
 		[]any{any(slackID)},
 		pqueue.NormalPriority,
 	)

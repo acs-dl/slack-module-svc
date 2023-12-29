@@ -3,12 +3,12 @@ package helpers
 import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
-	"github.com/slack-go/slack"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
+	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slackGo.Conversation, error) {
+func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slack.Conversation, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -19,7 +19,7 @@ func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, pri
 		return nil, errors.Wrap(err, "some error while getting chat from api")
 	}
 
-	conversations, ok := item.Response.Value.([]slackGo.Conversation)
+	conversations, ok := item.Response.Value.([]slack.Conversation)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
 	}
@@ -66,7 +66,7 @@ func GetUser(queue *pqueue.PriorityQueue, function any, args []any, priority int
 }
 
 // func for worker
-func GetUsers(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slack.User, error) {
+func GetUsers(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slackGo.User, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -77,7 +77,7 @@ func GetUsers(queue *pqueue.PriorityQueue, function any, args []any, priority in
 		return nil, errors.Wrap(err, "some error while getting user from api")
 	}
 
-	user, ok := item.Response.Value.([]slack.User)
+	user, ok := item.Response.Value.([]slackGo.User)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
 	}
@@ -105,7 +105,7 @@ func Users(queue *pqueue.PriorityQueue, function any, args []any, priority int) 
 	return user, nil
 }
 
-func WorkspaceName(queue *pqueue.PriorityQueue, function any, args []any, priority int) (string, error) {
+func GetWorkspaceName(queue *pqueue.PriorityQueue, function any, args []any, priority int) (string, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to add function in pqueue")
@@ -124,7 +124,7 @@ func WorkspaceName(queue *pqueue.PriorityQueue, function any, args []any, priori
 	return workspaceName, nil
 }
 
-func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slack.Channel, error) {
+func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slackGo.Channel, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -135,7 +135,7 @@ func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []a
 		return nil, errors.Wrap(err, "some error while getting chat from api")
 	}
 
-	conversations, ok := item.Response.Value.([]slack.Channel)
+	conversations, ok := item.Response.Value.([]slackGo.Channel)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
 	}
@@ -143,7 +143,7 @@ func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []a
 	return conversations, nil
 }
 
-func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (map[string]slack.BillingActive, error) {
+func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (map[string]slackGo.BillingActive, error) {
 	item, err := AddFunctionInPQueue(queue, function, []any{}, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -154,7 +154,7 @@ func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (m
 		return nil, errors.Wrap(err, "some error while getting billable info from api")
 	}
 
-	billableInfo, ok := item.Response.Value.(map[string]slack.BillingActive)
+	billableInfo, ok := item.Response.Value.(map[string]slackGo.BillingActive)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting billable info from api")
 	}
@@ -162,7 +162,7 @@ func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (m
 	return billableInfo, nil
 }
 
-func RetrieveChat(chats []slackGo.Conversation, msg data.ModulePayload) *slackGo.Conversation {
+func RetrieveChat(chats []slack.Conversation, msg data.ModulePayload) *slack.Conversation {
 	if len(chats) == 1 {
 		return &chats[0]
 	}

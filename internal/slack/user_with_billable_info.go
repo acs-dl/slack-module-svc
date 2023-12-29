@@ -5,7 +5,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) BillableInfoForUser(userId string) (bool, error) {
+func (s *client) GetBillableInfoForUser(userId string) (bool, error) {
 	userBill, err := s.userAdminClient.GetBillableInfo(userId)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get billable info about user", logan.F{

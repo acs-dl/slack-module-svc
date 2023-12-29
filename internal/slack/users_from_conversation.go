@@ -6,7 +6,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) ConversationUsersFromApi(conversation Conversation) ([]data.User, error) {
+func (s *client) GetConversationUsers(conversation Conversation) ([]data.User, error) {
 	users, err := s.getChatMembers(conversation)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get chat members")

@@ -6,9 +6,9 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -76,16 +76,16 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	return nil
 }
 
-func (p *processor) getConversations(link string) ([]slackGo.Conversation, error) {
-	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.ConversationFromApi), []any{any(link)}, pqueue.LowPriority)
+func (p *processor) getConversations(link string) ([]slack.Conversation, error) {
+	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.GetConversation), []any{any(link)}, pqueue.LowPriority)
 }
 
-func (p *processor) getBillableInfo() (map[string]slack.BillingActive, error) {
+func (p *processor) getBillableInfo() (map[string]slackGo.BillingActive, error) {
 	return helpers.GetBillableInfo(p.pqueues.SuperUserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
-func (p *processor) getUsersForChat(chat slackGo.Conversation) ([]data.User, error) {
-	users, err := helpers.Users(p.pqueues.SuperUserPQueue, any(p.client.ConversationUsersFromApi), []any{any(chat)}, pqueue.LowPriority)
+func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error) {
+	users, err := helpers.Users(p.pqueues.SuperUserPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for chat", logan.F{
 			"chat_id":    chat.Id,
@@ -97,9 +97,9 @@ func (p *processor) getUsersForChat(chat slackGo.Conversation) ([]data.User, err
 }
 
 func (p *processor) getWorkspaceName() (string, error) {
-	return helpers.WorkspaceName(
+	return helpers.GetWorkspaceName(
 		p.pqueues.SuperUserPQueue,
-		any(p.client.WorkspaceName),
+		any(p.client.GetWorkspaceName),
 		[]any{},
 		pqueue.LowPriority,
 	)
@@ -109,9 +109,9 @@ func (p *processor) processUser(
 	user data.User,
 	msg *data.ModulePayload,
 	workspaceName *string,
-	chat *slackGo.Conversation,
+	chat *slack.Conversation,
 	usersToUnverified *[]data.User,
-	billableInfo map[string]slack.BillingActive,
+	billableInfo map[string]slackGo.BillingActive,
 ) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
@@ -158,7 +158,7 @@ func (p *processor) processUser(
 	})
 }
 
-func (p *processor) storeChatInDatabaseSafe(chat *slackGo.Conversation) error {
+func (p *processor) storeChatInDatabaseSafe(chat *slack.Conversation) error {
 	err := p.managerQ.Conversations.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,

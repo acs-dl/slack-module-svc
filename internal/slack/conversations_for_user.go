@@ -6,7 +6,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) ConversationsForUser(userId string) ([]slack.Channel, error) {
+func (s *client) GetConversationsForUser(userId string) ([]slack.Channel, error) {
 	channels, _, err := s.superBotClient.GetConversationsForUser(
 		&slack.GetConversationsForUserParameters{
 			UserID: userId,

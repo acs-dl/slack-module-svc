@@ -9,7 +9,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) ConversationFromApi(title string) ([]Conversation, error) {
+func (s *client) GetConversation(title string) ([]Conversation, error) {
 	chats, err := s.getConversationFlow(title)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get chat", logan.F{

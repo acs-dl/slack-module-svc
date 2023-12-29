@@ -1,8 +1,6 @@
 package slack
 
 import (
-	"context"
-
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
@@ -10,14 +8,14 @@ import (
 )
 
 type Client interface {
-	UserFromApi(userId string) (*data.User, error)
-	FetchUsers() ([]slack.User, error)
-	WorkspaceName() (string, error)
-	ConversationsForUser(userId string) ([]slack.Channel, error)
-	BillableInfoForUser(userId string) (bool, error)
+	GetUser(userId string) (*data.User, error)
+	GetUsers() ([]slack.User, error)
+	GetWorkspaceName() (string, error)
+	GetConversationsForUser(userId string) ([]slack.Channel, error)
+	GetBillableInfoForUser(userId string) (bool, error)
 	GetBillableInfo() (map[string]slack.BillingActive, error)
-	ConversationFromApi(title string) ([]Conversation, error)
-	ConversationUsersFromApi(conversation Conversation) ([]data.User, error)
+	GetConversation(title string) ([]Conversation, error)
+	GetConversationUsers(conversation Conversation) ([]data.User, error)
 }
 
 type client struct {
@@ -40,8 +38,4 @@ func New(cfg config.Config) Client {
 		userAdminClient: slack.New(config.UserToken),
 		superBotClient:  slack.New(config.BotToken),
 	}
-}
-
-func ClientInstance(ctx context.Context) Client {
-	return ctx.Value("slack").(Client)
 }

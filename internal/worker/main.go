@@ -8,8 +8,8 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
-	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
-	"github.com/slack-go/slack"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
+	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/running"
@@ -42,7 +42,7 @@ type worker struct {
 	runnerDelay   time.Duration
 	estimatedTime time.Duration
 
-	client          slackGo.Client
+	client          slack.Client
 	pqueues         *pqueue.PQueues
 	sender          sender.Sender
 	unverifiedTopic string
@@ -58,7 +58,7 @@ func New(cfg config.Config, ctx context.Context) Worker {
 		runnerDelay:   cfg.Runners().Worker,
 		estimatedTime: time.Duration(0),
 
-		client:          slackGo.New(cfg),
+		client:          slack.New(cfg),
 		pqueues:         pqueue.PQueuesInstance(ctx),
 		sender:          sender.SenderInstance(ctx),
 		unverifiedTopic: cfg.Amqp().Unverified,
@@ -85,7 +85,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 
 	usersStore, err := helpers.GetUsers(
 		w.pqueues.SuperUserPQueue,
-		any(w.client.FetchUsers),
+		any(w.client.GetUsers),
 		[]any{},
 		pqueue.LowPriority,
 	)
@@ -104,9 +104,9 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 	}
 
 	w.logger.Info("getting workspaceName from Slack API")
-	workspaceName, err := helpers.WorkspaceName(
+	workspaceName, err := helpers.GetWorkspaceName(
 		w.pqueues.SuperUserPQueue,
-		any(w.client.WorkspaceName),
+		any(w.client.GetWorkspaceName),
 		[]any{},
 		pqueue.LowPriority,
 	)
@@ -165,7 +165,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 	return nil
 }
 
-func (w *worker) upsertUsers(user slack.User) error {
+func (w *worker) upsertUsers(user slackGo.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,
@@ -182,10 +182,10 @@ func (w *worker) upsertUsers(user slack.User) error {
 	return nil
 }
 
-func (w *worker) upsertPermissions(user slack.User, workspaceName string, billableInfo map[string]slack.BillingActive) error {
+func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, billableInfo map[string]slackGo.BillingActive) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
-		any(w.client.ConversationsForUser),
+		any(w.client.GetConversationsForUser),
 		[]interface{}{user.ID},
 		pqueue.LowPriority,
 	)
@@ -221,7 +221,7 @@ func (w *worker) upsertPermissions(user slack.User, workspaceName string, billab
 	return nil
 }
 
-func (w *worker) userStatus(user *slack.User) string {
+func (w *worker) userStatus(user *slackGo.User) string {
 	switch {
 	case user.IsAdmin:
 		return "admin"
