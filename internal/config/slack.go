@@ -4,8 +4,6 @@ import (
 	"os"
 )
 
-const slackYamlTag = "slack"
-
 type SlackConfig struct {
 	UserToken string
 	BotToken  string

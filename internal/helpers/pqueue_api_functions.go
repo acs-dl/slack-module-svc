@@ -184,10 +184,5 @@ func GetRequestError(queue *pqueue.PriorityQueue, function any, args []any, prio
 		return errors.Wrap(err, "failed to add function in pqueue")
 	}
 
-	err = item.Response.Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return errors.Wrap(item.Response.Error, "response error occured")
 }

@@ -1,11 +1,11 @@
 package processor
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -19,7 +19,9 @@ func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
 func (p *processor) parseUserID(userID string) (int64, error) {
 	userId, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil {
-		return 0, errors.Wrap(err, fmt.Sprintf("failed to parse user id:%s", userID))
+		return 0, errors.Wrap(err, "failed to parse user", logan.F{
+			"user_id": userID,
+		})
 	}
 	return userId, nil
 }
@@ -27,7 +29,9 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 func (p *processor) updateUserInDB(user *data.User, userID int64) error {
 	user.Id = &userID
 	if err := p.usersQ.Upsert(*user); err != nil {
-		return errors.Wrap(err, "failed to upsert user in db")
+		return errors.Wrap(err, "failed to upsert user in db", logan.F{
+			"user_id": userID,
+		})
 	}
 	return nil
 }
@@ -41,12 +45,16 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 
 	userId, err := p.parseUserID(msg.UserId)
 	if err != nil {
-		return data.FAILURE, errors.Wrap(err, "failed to parse user id")
+		return data.FAILURE, errors.Wrap(err, "failed to parse user id", logan.F{
+			"user_id": msg.UserId,
+		})
 	}
 
 	user, err := p.usersQ.FilterByUsername(msg.Username).Get()
 	if err != nil {
-		return data.FAILURE, errors.Wrap(err, "failed to get user by username")
+		return data.FAILURE, errors.Wrap(err, "failed to get user by username", logan.F{
+			"username": msg.Username,
+		})
 	}
 
 	if user == nil {
@@ -54,7 +62,9 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 	}
 
 	if err := p.updateUserInDB(user, userId); err != nil {
-		return data.FAILURE, errors.Wrap(err, "failed to upsert user in db")
+		return data.FAILURE, errors.Wrap(err, "failed to upsert user in db", logan.F{
+			"user_id": userId,
+		})
 	}
 
 	if err := p.sendUpdateUserSlack(msg.RequestId, data.ModulePayload{
@@ -72,6 +82,6 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, errors.Wrap(err, "failed to publish delete user")
 	}
 
-	p.log.Infof("finish handle message action with id `%s`", msg.RequestId)
+	p.log.Infof("finish handle message action `%s`", msg.RequestId)
 	return data.SUCCESS, nil
 }

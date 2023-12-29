@@ -3,7 +3,6 @@ package sender
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
@@ -58,12 +57,16 @@ func (s *Sender) processMessages(ctx context.Context) error {
 		s.log.Infof("started processing response with id %s", response.ID)
 		err = (*s.publisher).Publish(s.topic, s.buildResponse(response))
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to process response `%s", response.ID))
+			return errors.Wrap(err, "failed to process response", logan.F{
+				"response_id": response.ID,
+			})
 		}
 
 		err = s.responsesQ.FilterByIds(response.ID).Delete()
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("failed to delete processed response `%s", response.ID))
+			return errors.Wrap(err, "failed to delete processed response `%s", logan.F{
+				"response_id": response.ID,
+			})
 		}
 		s.log.Info("finished processing response with id ", response.ID)
 	}
@@ -88,7 +91,10 @@ func (s *Sender) buildResponse(response data.Response) *message.Message {
 func (s *Sender) SendMessageToCustomChannel(topic string, msg *message.Message) error {
 	err := (*s.publisher).Publish(topic, msg)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to send msg `%s to `%s`", msg.UUID, topic))
+		return errors.Wrap(err, "failed to send msg `%s to `%s`", logan.F{
+			"message_id": msg.UUID,
+			"topic":      topic,
+		})
 	}
 
 	return nil
