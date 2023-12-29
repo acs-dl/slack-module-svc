@@ -6,7 +6,7 @@ Module for access control for slack.
 
 ## Slack Access Tokens generation rules
 
-# User OAuth token
+### User OAuth token
 
 Always starts with `xoxp`
 
@@ -20,7 +20,7 @@ Required permissions:
 - users.profile:read
 - users:read
 
-# User Bot OAuth token 
+### User Bot OAuth token 
 
 Always starts with `xoxb`
 
