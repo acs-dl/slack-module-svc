@@ -1,10 +1,10 @@
-package slack_client
+package slack
 
 import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *slackStruct) WorkspaceName() (string, error) {
+func (s *client) WorkspaceName() (string, error) {
 
 	team, err := s.userAdminClient.GetTeamInfo()
 	if err != nil {

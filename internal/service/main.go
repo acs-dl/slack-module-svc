@@ -2,49 +2,25 @@ package service
 
 import (
 	"context"
+	"sync"
+
+	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/receiver"
 	"github.com/acs-dl/slack-module-svc/internal/registrator"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
+	"github.com/acs-dl/slack-module-svc/internal/service/api"
 	"github.com/acs-dl/slack-module-svc/internal/service/api/handlers"
 	"github.com/acs-dl/slack-module-svc/internal/service/types"
 	"github.com/acs-dl/slack-module-svc/internal/worker"
-	"sync"
-
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-
-	"github.com/acs-dl/slack-module-svc/internal/config"
 )
 
-type svc struct {
-	Name    string
-	New     func(config.Config, context.Context) interface{}
-	Run     func(interface{}, context.Context)
-	Context func(interface{}, context.Context) context.Context
-}
-
-var services = []svc{
-	//{"slack", slack_client.NewSlack, nil, slack_client.CtxSlackClientInstance},
-	{"sender", sender.NewSenderAsInterface, sender.RunSenderAsInterface, sender.CtxSenderInstance},
-	{"processor", processor.NewProcessorAsInterface, nil, processor.CtxProcessorInstance},
-	{"worker", worker.NewWorkerAsInterface, worker.RunWorkerAsInterface, worker.CtxWorkerInstance},
-	{"receiver", receiver.NewReceiverAsInterface, receiver.RunReceiverAsInterface, receiver.CtxReceiverInstance},
-	{"registrar", registrator.NewRegistrarAsInterface, registrator.RunRegistrarAsInterface, nil},
-	//{"api", api.NewRouterAsInterface, api.RunRouterAsInterface, nil},
-}
-
-func runService(service types.Service, wg *sync.WaitGroup) {
-	wg.Add(1)
-	go func() {
-		defer func() {
-			wg.Done()
-		}()
-
-		if err := service.Run(context.Background()); err != nil {
-			panic(err)
-		}
-	}()
+type runner struct {
+	name    string
+	service types.Service
 }
 
 func Run(cfg config.Config) {
@@ -61,29 +37,40 @@ func Run(cfg config.Config) {
 	ctx = pqueue.CtxPQueues(&pqueues, ctx)
 	ctx = handlers.CtxConfig(cfg, ctx)
 
-	for _, mySvc := range services {
+	// Services instantiation goes below
+	senderSvc := sender.New(cfg)
+	ctx = sender.CtxSenderInstance(senderSvc, ctx)
+
+	processorSvc := processor.New(cfg, ctx)
+	ctx = processor.CtxProcessorInstance(processorSvc, ctx)
+
+	workerSvc := worker.New(cfg, ctx)
+	ctx = worker.CtxWorkerInstance(workerSvc, ctx)
+
+	receiverSvc := receiver.New(cfg, ctx)
+	ctx = receiver.CtxReceiverInstance(receiverSvc, ctx)
+
+	runners := []runner{
+		{"sender", senderSvc},
+		{"worker", workerSvc},
+		{"receiver", receiverSvc},
+		{"registrar", registrator.New(cfg)},
+		{"api", api.New(cfg, ctx)},
+	}
+
+	for _, runner := range runners {
 		wg.Add(1)
+		go func(svc types.Service, ctx context.Context) {
+			defer wg.Done()
 
-		instance := mySvc.New(cfg, ctx)
-		if instance == nil {
-			logger.WithField("service", mySvc.Name).Warn("Service instance not created")
-			panic(errors.Errorf("`%s` instance not created", mySvc.Name))
-		}
+			if err := svc.Run(ctx); err != nil {
+				panic(errors.Wrap(err, "failed to run service", logan.F{
+					"serviceName": runner.name,
+				}))
+			}
+		}(runner.service, ctx)
 
-		if mySvc.Context != nil {
-			ctx = mySvc.Context(instance, ctx)
-		}
-
-		if mySvc.Run != nil {
-			wg.Add(1)
-			go func(structure interface{}, runner func(interface{}, context.Context)) {
-				defer wg.Done()
-
-				runner(structure, ctx)
-
-			}(instance, mySvc.Run)
-		}
-		logger.WithField("service", mySvc.Name).Info("Service started")
+		logger.WithField("service", runner.name).Info("Service started")
 	}
 
 	wg.Wait()

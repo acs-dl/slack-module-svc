@@ -1,16 +1,7 @@
 package data
 
 const (
-	ModuleName        = "slack_client"
-	UnverifiedService = "unverified-svc"
-	IdentityService   = "identity"
-	//Organization           = "org"
-	//Repository             = "repo"
-	//UserOwned              = "User"
-	//OrganizationOwned      = "Organization"
-	//Push                   = "push"
-	//AcceptHeader           = "application/vnd.Github+json"
-	//GithubApiVersionHeader = "2022-11-28"
+	ModuleName = "slack"
 )
 
 type ModulePayload struct {
@@ -40,4 +31,12 @@ var Roles = map[string]string{
 	RestrictedUser: "Restricted User",
 	Bot:            "Bot",
 	App:            "App",
+}
+
+func MapKeysToSlice(m map[string]string) []interface{} {
+	keys := make([]interface{}, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

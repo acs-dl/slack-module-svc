@@ -2,10 +2,11 @@ package registrator
 
 import (
 	"context"
+	"time"
+
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"gitlab.com/distributed_lab/logan/v3"
-	"time"
 
 	"gitlab.com/distributed_lab/running"
 )
@@ -13,7 +14,7 @@ import (
 const ServiceName = data.ModuleName + "-registrar"
 
 type Registrar interface {
-	Run(ctx context.Context)
+	Run(ctx context.Context) error
 	UnregisterModule() error
 }
 
@@ -23,7 +24,7 @@ type registrar struct {
 	runnerDelay time.Duration
 }
 
-func NewRegistrar(cfg config.Config) Registrar {
+func New(cfg config.Config) Registrar {
 	return &registrar{
 		logger:      cfg.Log().WithField("runner", ServiceName),
 		config:      cfg.Registrator(),
@@ -31,15 +32,7 @@ func NewRegistrar(cfg config.Config) Registrar {
 	}
 }
 
-func NewRegistrarAsInterface(cfg config.Config, _ context.Context) interface{} {
-	return interface{}(&registrar{
-		logger:      cfg.Log().WithField("runner", ServiceName),
-		config:      cfg.Registrator(),
-		runnerDelay: cfg.Runners().Registrar,
-	})
-}
-
-func (r *registrar) Run(ctx context.Context) {
+func (r *registrar) Run(ctx context.Context) error {
 	running.WithBackOff(
 		ctx,
 		r.logger,
@@ -49,4 +42,6 @@ func (r *registrar) Run(ctx context.Context) {
 		r.runnerDelay,
 		r.runnerDelay,
 	)
+
+	return nil
 }

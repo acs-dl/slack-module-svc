@@ -13,8 +13,13 @@ allOf:
         properties:
           username:
             type: string
-            description: username from telegram
+            description: username from slack
             example: "velykodnyi"
+          module_id:
+            type: integer
+            format: int64
+            description: user id from module
+            example: 8421495
           user_id:
             type: integer
             format: int64
@@ -24,6 +29,10 @@ allOf:
             type: string
             description: chat title
             example: "WE vs. ACS"
+          submodule_id:
+            type: string
+            description: submodule id to handle submodule with the same title
+            example: 666
           path:
             type: string
             description: workspace title
@@ -32,4 +41,3 @@ allOf:
             type: object
             description: level of success for workspace
             $ref: "#/components/schemas/AccessLevel"
-

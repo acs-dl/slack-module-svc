@@ -2,8 +2,9 @@ package registrator
 
 import (
 	"fmt"
-	"github.com/acs-dl/slack-module-svc/internal/data"
 	"net/http"
+
+	"github.com/acs-dl/slack-module-svc/internal/data"
 
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )

@@ -5,11 +5,9 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (w *Worker) getUserFromDbBySlackId(slackId string) (*data.User, error) {
-
+func (w *worker) getUserFromDbBySlackId(slackId string) (*data.User, error) {
 	usersQ := w.usersQ.New()
 	user, err := usersQ.FilterBySlackIds(slackId).Get()
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user from db")
 	}

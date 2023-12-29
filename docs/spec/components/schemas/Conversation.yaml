@@ -11,7 +11,7 @@ allOf:
           - members_amount
           - id
         properties:
-          id:
+          submodule_id:
             type: integer
             format: int64
             description: slack channel id

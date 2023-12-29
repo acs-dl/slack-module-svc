@@ -1,11 +1,12 @@
-package slack_client
+package slack
 
 import (
 	"fmt"
+
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *slackStruct) BillableInfoForUser(userId string) (bool, error) {
+func (s *client) BillableInfoForUser(userId string) (bool, error) {
 	userBill, err := s.userAdminClient.GetBillableInfo(userId)
 	if err != nil {
 		return false, errors.Wrap(err, fmt.Sprintf("failed to get billable info about user %s.", userId))

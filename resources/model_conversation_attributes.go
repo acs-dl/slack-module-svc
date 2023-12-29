@@ -5,10 +5,10 @@
 package resources
 
 type ConversationAttributes struct {
-	// slack channel id
-	Id int64 `json:"id"`
 	// slack channel members amount
 	MembersAmount int64 `json:"members_amount"`
+	// slack channel id
+	SubmoduleId *int64 `json:"submodule_id,omitempty"`
 	// slack channel title
 	Title string `json:"title"`
 }

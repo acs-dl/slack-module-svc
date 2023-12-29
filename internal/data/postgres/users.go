@@ -3,13 +3,14 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/fatih/structs"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"strings"
-	"time"
 )
 
 const (

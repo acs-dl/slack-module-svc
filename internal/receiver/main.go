@@ -3,6 +3,8 @@ package receiver
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/config"
@@ -14,7 +16,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/running"
-	"time"
 )
 
 const (
@@ -26,33 +27,35 @@ const (
 	DeleteUserAction       = "delete_user"
 )
 
-type Receiver struct {
+type Receiver interface {
+	HandleNewMessage(msg data.ModulePayload) (string, error)
+	Run(ctx context.Context) error
+}
+
+type receiver struct {
 	subscriber  *amqp.Subscriber
 	topic       string
 	log         *logan.Entry
-	processor   processor.Processor // dont have processor yet
-	worker      *worker.Worker
+	processor   processor.Processor
+	worker      worker.Worker
 	responseQ   data.Responses
 	runnerDelay time.Duration
 }
 
-var handleActions = map[string]func(r *Receiver, msg data.ModulePayload) (string, error){
-	//DeleteUserAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
-	//	return r.processor.HandleDeleteUserAction(msg)
-	//},
-	VerifyUserAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
+var handleActions = map[string]func(r *receiver, msg data.ModulePayload) (string, error){
+	VerifyUserAction: func(r *receiver, msg data.ModulePayload) (string, error) {
 		return r.processor.HandleVerifyUserAction(msg)
 	},
-	RefreshModuleAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
+	RefreshModuleAction: func(r *receiver, msg data.ModulePayload) (string, error) {
 		return r.worker.RefreshModule()
 	},
-	RefreshSubmoduleAction: func(r *Receiver, msg data.ModulePayload) (string, error) {
+	RefreshSubmoduleAction: func(r *receiver, msg data.ModulePayload) (string, error) {
 		return r.worker.RefreshSubmodules(msg)
 	},
 }
 
-func NewReceiverAsInterface(cfg config.Config, ctx context.Context) interface{} {
-	return interface{}(&Receiver{
+func New(cfg config.Config, ctx context.Context) Receiver {
+	return &receiver{
 		subscriber:  cfg.Amqp().Subscriber,
 		topic:       cfg.Amqp().Topic,
 		log:         logan.New().WithField("service", ServiceName),
@@ -60,10 +63,10 @@ func NewReceiverAsInterface(cfg config.Config, ctx context.Context) interface{} 
 		responseQ:   postgres.NewResponsesQ(cfg.DB()),
 		worker:      worker.WorkerInstance(ctx),
 		runnerDelay: cfg.Runners().Receiver,
-	})
+	}
 }
 
-func (r *Receiver) Run(ctx context.Context) {
+func (r *receiver) Run(ctx context.Context) error {
 	go running.WithBackOff(ctx, r.log,
 		ServiceName,
 		r.listenMessages,
@@ -71,14 +74,22 @@ func (r *Receiver) Run(ctx context.Context) {
 		r.runnerDelay,
 		r.runnerDelay,
 	)
+
+	return nil
 }
 
-func (r *Receiver) listenMessages(ctx context.Context) error {
+func validateMessageAction(msg data.ModulePayload) error {
+	return validation.Errors{
+		"action": validation.Validate(msg.Action, validation.Required, validation.In(VerifyUserAction, RefreshModuleAction, RefreshSubmoduleAction)),
+	}.Filter()
+}
+
+func (r *receiver) listenMessages(ctx context.Context) error {
 	r.log.Info("started listening messages")
 	return r.subscribeForTopic(ctx, r.topic)
 }
 
-func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
+func (r *receiver) subscribeForTopic(ctx context.Context, topic string) error {
 	msgChan, err := r.subscriber.Subscribe(ctx, topic)
 	if err != nil {
 		return errors.Wrap(err, "failed to subscribe for topic "+topic)
@@ -90,8 +101,6 @@ func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
 		case <-ctx.Done():
 			return nil
 		case msg := <-msgChan:
-
-			//TODO: 1
 			r.log.Info("received message ", msg.UUID)
 			err = r.processMessage(msg)
 			if err != nil {
@@ -102,23 +111,18 @@ func (r *Receiver) subscribeForTopic(ctx context.Context, topic string) error {
 	}
 }
 
-func (r *Receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
+func (r *receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	r.log.Infof("handling message with id `%s`", msg.RequestId)
 
-	err := validation.Errors{
-		"action": validation.Validate(msg.Action, validation.Required),
-	}.Filter()
+	err := validateMessageAction(msg)
 	if err != nil {
 		r.log.WithError(err).Error("no such action to handle for message with id `%s`", msg.RequestId)
 		return data.FAILURE, errors.New("no such action " + msg.Action + " to handle for message with id " + msg.RequestId)
 	}
 
 	requestHandler := handleActions[msg.Action]
-
 	requestStatus, err := requestHandler(r, msg)
-
 	if err != nil {
-
 		r.log.WithError(err).Errorf("failed to handle message with id `%s`", msg.RequestId)
 		return requestStatus, err
 	}
@@ -127,7 +131,7 @@ func (r *Receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	return requestStatus, nil
 }
 
-func (r *Receiver) processMessage(msg *message.Message) error {
+func (r *receiver) processMessage(msg *message.Message) error {
 	r.log.Info("started processing message ", msg.UUID)
 
 	var queueOutput data.ModulePayload

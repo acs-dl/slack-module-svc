@@ -6,7 +6,7 @@ import (
 )
 
 func (p *processor) getUserFromDbBySlackId(slackId string) (*data.User, error) {
-	usersQ := p.usersQ.New()
+	usersQ := p.managerQ.Users.New()
 	user, err := usersQ.FilterBySlackIds(slackId).Get()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user from db")

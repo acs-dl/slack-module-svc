@@ -1,14 +1,14 @@
 package processor
 
 import (
-	"fmt"
+	"time"
+
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/acs-dl/slack-module-svc/internal/slack_client"
+	"github.com/acs-dl/slack-module-svc/internal/slack"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"time"
 )
 
 func (p *processor) validateGetUsers(msg data.ModulePayload) error {
@@ -46,9 +46,8 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 
 		workspaceName, err := p.getWorkspaceName()
 		if err != nil {
-			p.log.WithError(err).Error("failed to get workspaceName from AP `%s`")
-			return errors.Wrap(err, "failed to get workspaceName from AP")
-
+			p.log.WithError(err).Error("failed to get workspaceName from API")
+			return errors.Wrap(err, "failed to get workspaceName from API")
 		}
 
 		usersToUnverified := make([]data.User, 0)
@@ -78,11 +77,11 @@ func (p *processor) handleErrorWithMessageActionID(requestID, message string, er
 	return errors.Wrap(err, message)
 }
 
-func (p *processor) getConversations(link string) ([]slack_client.Conversation, error) {
+func (p *processor) getConversations(link string) ([]slack.Conversation, error) {
 	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.ConversationFromApi), []any{any(link)}, pqueue.LowPriority)
 }
 
-func (p *processor) getUsersForChat(chat slack_client.Conversation) ([]data.User, error) {
+func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error) {
 	users, err := helpers.Users(p.pqueues.SuperUserPQueue, any(p.client.ConversationUsersFromApi), []any{any(chat)}, pqueue.LowPriority)
 	if err != nil {
 		return nil, err
@@ -99,10 +98,10 @@ func (p *processor) getWorkspaceName() (string, error) {
 	)
 }
 
-func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack_client.Conversation, usersToUnverified *[]data.User) error {
+func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspaceName *string, chat *slack.Conversation, usersToUnverified *[]data.User) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
-		if err := p.usersQ.Upsert(user); err != nil {
+		if err := p.managerQ.Users.Upsert(user); err != nil {
 			p.log.WithError(err).Errorf("failed to create user in db for message action with id `%s`", msg.RequestId)
 			return errors.Wrap(err, "failed to create user in user db")
 		}
@@ -116,10 +115,10 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 		user.Id = dbUser.Id
 		*usersToUnverified = append(*usersToUnverified, user)
 
+		// TODO: get billable info for the user
 		//bill, err := helpers.GetBillableInfoForUser(p.pqueues.SuperUserPQueue, any(p.client.BillableInfoForUser), []interface{}{user.Id}, pqueue.LowPriority)
 
-		fmt.Println(msg.RequestId)
-		if err := p.permissionsQ.Upsert(data.Permission{
+		if err := p.managerQ.Permissions.Upsert(data.Permission{
 			RequestId:   msg.RequestId,
 			WorkSpace:   *workspaceName,
 			SlackId:     user.SlackId,
@@ -138,9 +137,8 @@ func (p *processor) processUser(user data.User, msg *data.ModulePayload, workspa
 	})
 }
 
-func (p *processor) storeChatInDatabaseSafe(chat *slack_client.Conversation) error {
-
-	err := p.conversationsQ.Upsert(data.Conversation{
+func (p *processor) storeChatInDatabaseSafe(chat *slack.Conversation) error {
+	err := p.managerQ.Conversations.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,
 		MembersAmount: chat.MembersAmount,

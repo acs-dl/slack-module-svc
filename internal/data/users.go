@@ -1,8 +1,9 @@
 package data
 
 import (
-	"gitlab.com/distributed_lab/kit/pgdb"
 	"time"
+
+	"gitlab.com/distributed_lab/kit/pgdb"
 )
 
 type Users interface {
@@ -15,9 +16,8 @@ type Users interface {
 
 	FilterByLowerTime(time time.Time) Users
 	FilterById(id *int64) Users
-	FilterBySlackIds(telegramIds ...string) Users
+	FilterBySlackIds(slackIds ...string) Users
 	FilterByUsername(username string) Users
-	//FilterByPhone(phone string) Users
 	SearchBy(search string) Users
 
 	Count() Users
@@ -43,5 +43,6 @@ type UnverifiedUser struct {
 	Submodule string    `json:"submodule"`
 	Username  *string   `json:"username,omitempty"`
 	RealName  *string   `json:"real_name,omitempty"`
+	SlackId   string    `json:"slack_id"`
 	ModuleId  string    `json:"module_id"`
 }

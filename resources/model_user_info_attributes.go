@@ -7,6 +7,8 @@ package resources
 type UserInfoAttributes struct {
 	// name from slack account
 	Name string `json:"name"`
-	// username from telegram
+	// id from slack
+	SlackId *string `json:"slack_id,omitempty"`
+	// username from slack
 	Username *string `json:"username,omitempty"`
 }

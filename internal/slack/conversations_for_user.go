@@ -1,4 +1,4 @@
-package slack_client
+package slack
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *slackStruct) ConversationsForUser(userId string) ([]slack.Channel, error) {
+func (s *client) ConversationsForUser(userId string) ([]slack.Channel, error) {
 
 	channels, _, err := s.superBotClient.GetConversationsForUser(
 		&slack.GetConversationsForUserParameters{

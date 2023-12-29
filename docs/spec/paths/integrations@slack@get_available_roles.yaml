@@ -3,7 +3,7 @@ get:
     - Roles
   summary: Get roles
   operationId: getRoles
-  description: Endpoint for getting all available roles (permission to set) from telegram module to pass them in FE.
+  description: Endpoint for getting all available roles (permission to set) from slack module to pass them in FE.
   parameters:
     - $ref: '#/components/parameters/linkParam'
     - $ref: '#/components/parameters/phoneParam'
