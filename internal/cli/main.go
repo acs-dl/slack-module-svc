@@ -5,14 +5,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gitlab.com/distributed_lab/logan/v3"
-
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/registrator"
 	"github.com/acs-dl/slack-module-svc/internal/service"
 	"github.com/alecthomas/kingpin"
 	"gitlab.com/distributed_lab/kit/kv"
+	"gitlab.com/distributed_lab/logan/v3"
 )
 
 func Run(args []string) bool {

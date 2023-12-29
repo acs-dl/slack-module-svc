@@ -18,12 +18,5 @@ func GetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := data.Roles[*request.AccessLevel]
-	if name == "" {
-		Log(r).Error("no such access level")
-		ape.RenderErr(w, problems.NotFound())
-		return
-	}
-
 	ape.Render(w, models.NewRoleResponse(data.Roles[*request.AccessLevel], *request.AccessLevel))
 }

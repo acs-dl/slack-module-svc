@@ -3,12 +3,12 @@ package helpers
 import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	slack2 "github.com/acs-dl/slack-module-svc/internal/slack"
+	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slack2.Conversation, error) {
+func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slackGo.Conversation, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -19,7 +19,7 @@ func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, pri
 		return nil, errors.Wrap(err, "some error while getting chat from api")
 	}
 
-	conversations, ok := item.Response.Value.([]slack2.Conversation)
+	conversations, ok := item.Response.Value.([]slackGo.Conversation)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
 	}
@@ -162,7 +162,7 @@ func GetBillableInfoForUser(queue *pqueue.PriorityQueue, function any, args []an
 	return billableInfo, nil
 }
 
-func RetrieveChat(chats []slack2.Conversation, msg data.ModulePayload) *slack2.Conversation {
+func RetrieveChat(chats []slackGo.Conversation, msg data.ModulePayload) *slackGo.Conversation {
 	if len(chats) == 1 {
 		return &chats[0]
 	}

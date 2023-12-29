@@ -3,6 +3,7 @@ package requests
 import (
 	"net/http"
 
+	"github.com/acs-dl/slack-module-svc/internal/data"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/urlval"
 )
@@ -23,7 +24,8 @@ func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
 }
 
 func validateGetRoleRequest(request GetRoleRequest) error {
+	accessLevels := data.MapKeysToSlice(data.Roles)
 	return validation.Errors{
-		"accessLevel": validation.Validate(request.AccessLevel, validation.Required),
+		"accessLevel": validation.Validate(request.AccessLevel, validation.Required, validation.In(accessLevels...)),
 	}.Filter()
 }

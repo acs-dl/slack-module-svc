@@ -9,7 +9,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
-	slack2 "github.com/acs-dl/slack-module-svc/internal/slack"
+	slackGo "github.com/acs-dl/slack-module-svc/internal/slack"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -42,7 +42,7 @@ type worker struct {
 	runnerDelay   time.Duration
 	estimatedTime time.Duration
 
-	client          slack2.Client
+	client          slackGo.Client
 	pqueues         *pqueue.PQueues
 	sender          sender.Sender
 	unverifiedTopic string
@@ -58,7 +58,7 @@ func New(cfg config.Config, ctx context.Context) Worker {
 		runnerDelay:   cfg.Runners().Worker,
 		estimatedTime: time.Duration(0),
 
-		client:          slack2.New(cfg),
+		client:          slackGo.New(cfg),
 		pqueues:         pqueue.PQueuesInstance(ctx),
 		sender:          sender.SenderInstance(ctx),
 		unverifiedTopic: cfg.Amqp().Unverified,

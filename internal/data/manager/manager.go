@@ -7,7 +7,7 @@ import (
 )
 
 type Manager struct {
-	Db *pgdb.DB
+	db *pgdb.DB
 
 	Responses     data.Responses
 	Permissions   data.Permissions
@@ -18,7 +18,7 @@ type Manager struct {
 
 func NewManager(db *pgdb.DB) *Manager {
 	return &Manager{
-		Db:            db,
+		db:            db,
 		Responses:     postgres.NewResponsesQ(db),
 		Permissions:   postgres.NewPermissionsQ(db),
 		Users:         postgres.NewUsersQ(db),
@@ -28,5 +28,5 @@ func NewManager(db *pgdb.DB) *Manager {
 }
 
 func (m *Manager) Transaction(fn func() error) error {
-	return m.Db.Transaction(fn)
+	return m.db.Transaction(fn)
 }

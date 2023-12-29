@@ -78,6 +78,12 @@ func (r *receiver) Run(ctx context.Context) error {
 	return nil
 }
 
+func validateMessageAction(msg data.ModulePayload) error {
+	return validation.Errors{
+		"action": validation.Validate(msg.Action, validation.Required, validation.In(VerifyUserAction, RefreshModuleAction, RefreshSubmoduleAction)),
+	}.Filter()
+}
+
 func (r *receiver) listenMessages(ctx context.Context) error {
 	r.log.Info("started listening messages")
 	return r.subscribeForTopic(ctx, r.topic)
@@ -108,9 +114,7 @@ func (r *receiver) subscribeForTopic(ctx context.Context, topic string) error {
 func (r *receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 	r.log.Infof("handling message with id `%s`", msg.RequestId)
 
-	err := validation.Errors{
-		"action": validation.Validate(msg.Action, validation.Required),
-	}.Filter()
+	err := validateMessageAction(msg)
 	if err != nil {
 		r.log.WithError(err).Error("no such action to handle for message with id `%s`", msg.RequestId)
 		return data.FAILURE, errors.New("no such action " + msg.Action + " to handle for message with id " + msg.RequestId)

@@ -32,3 +32,11 @@ var Roles = map[string]string{
 	Bot:            "Bot",
 	App:            "App",
 }
+
+func MapKeysToSlice(m map[string]string) []interface{} {
+	keys := make([]interface{}, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
