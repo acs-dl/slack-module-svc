@@ -13,31 +13,6 @@ amqp:
   publisher: "amqp://guest:guest@localhost:5672/" #slack_publisher
   subscriber: "amqp://guest:guest@localhost:5672/" #slack_receiver
 
-slack:
-  # User OAuth token starts with 'xoxp'
-  # Required permissions: 
-  # - admin
-  # - channels:read
-  # - groups:read
-  # - im:read
-  # - mpim:read
-  # - team:read
-  # - users.profile:read
-  # - users:read
-  user_oauth_token: user_token
-
-  # User Bot OAuth token starts with 'xoxb'
-  # Required permissions: 
-  # - channels:read
-  # - groups:read
-  # - team.billing:read
-  # - team:read
-  # - usergroups:read
-  # - users.profile:read
-  # - users:read
-  # - users:read.email
-  bot_user_oauth_token: bot_token
-
 runners:
   registrar: 10m
   worker: 60m

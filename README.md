@@ -4,6 +4,36 @@
 
 Module for access control for slack.
 
+## Slack Access Tokens generation rules
+
+# User OAuth token
+
+Always starts with `xoxp`
+
+Required permissions: 
+- admin
+- channels:read
+- groups:read
+- im:read
+- mpim:read
+- team:read
+- users.profile:read
+- users:read
+
+# User Bot OAuth token 
+
+Always starts with `xoxb`
+
+Required permissions: 
+- channels:read
+- groups:read
+- team.billing:read
+- team:read
+- usergroups:read
+- users.profile:read
+- users:read
+- users:read.email
+
 ## Install
 
   ```
