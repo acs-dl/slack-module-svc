@@ -17,12 +17,6 @@ func CheckSubmodule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Link == nil {
-		Log(r).Errorf("no link was provided")
-		ape.RenderErr(w, problems.BadRequest(err)...)
-		return
-	}
-
 	chats, err := ConversationsQ(r).SearchBy(*request.Link).Select()
 	if err != nil {
 		Log(r).WithError(err).Errorf("failed to get chats with `%s` title", *request.Link)

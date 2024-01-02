@@ -19,19 +19,7 @@ func GetRoles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Link == nil {
-		Log(r).Warnf("no link was provided")
-		ape.RenderErr(w, problems.NotFound())
-		return
-	}
 	link := strings.ToLower(*request.Link)
-
-	if request.Username == nil {
-		Log(r).Warnf("no username was provided")
-		ape.RenderErr(w, problems.NotFound())
-		return
-	}
-
 	permission, err := PermissionsQ(r).FilterByUsernames(*request.Username).FilterByLinks(link).Get()
 	if err != nil {
 		Log(r).WithError(err).Errorf("failed to get permission from `%s` to `%s`", link, *request.Username)

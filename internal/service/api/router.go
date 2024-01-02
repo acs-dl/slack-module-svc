@@ -38,7 +38,7 @@ func (r *Router) apiRouter() chi.Router {
 		r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
 			Get("/get_input", handlers.GetInputs)
 		r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-			Get("/", handlers.GetRoles)
+			Get("/get_available_roles", handlers.GetRoles)
 
 		r.Get("/role", handlers.GetRole)               // comes from orchestrator
 		r.Get("/roles", handlers.GetRolesMap)          // comes from orchestrator

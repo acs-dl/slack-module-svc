@@ -3,6 +3,9 @@ package requests
 import (
 	"net/http"
 
+	"github.com/acs-dl/slack-module-svc/internal/data"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/urlval"
 )
 
@@ -14,6 +17,16 @@ func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
 	var request GetRoleRequest
 
 	err := urlval.Decode(r.URL.Query(), &request)
+	if err != nil {
+		return request, errors.Wrap(err, "failed to decode url")
+	}
 
-	return request, err
+	return request, validateGetRoleRequest(request)
+}
+
+func validateGetRoleRequest(request GetRoleRequest) error {
+	accessLevels := data.MapKeysToSlice(data.Roles)
+	return validation.Errors{
+		"accessLevel": validation.Validate(request.AccessLevel, validation.Required, validation.In(accessLevels...)),
+	}.Filter()
 }
