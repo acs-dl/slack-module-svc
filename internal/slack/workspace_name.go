@@ -5,7 +5,7 @@ import (
 )
 
 func (s *client) GetWorkspaceName() (string, error) {
-	team, err := s.userAdminClient.GetTeamInfo()
+	team, err := s.botClient.GetTeamInfo()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to retrieve team info")
 	}

@@ -6,33 +6,28 @@ Module for access control for slack.
 
 ## Slack Access Tokens generation rules
 
-### User OAuth token
+To run Slack ACS Module, a pair of tokens is needed - *User OAuth Token* and *User Bot OAuth token*. Follow (this guide from Slack)[https://api.slack.com/tutorials/tracks/getting-a-token] to generate them for your Slack workspace.
+
+Keep in mind that each token has its own scopes that you have to specify once you created a Slack app. See the list of required scopes below.
+
+### User OAuth token scopes
 
 Always starts with `xoxp`
 
-Required permissions: 
+Required scopes: 
 - admin
-- channels:read
-- groups:read
-- im:read
-- mpim:read
-- team:read
-- users.profile:read
-- users:read
 
-### User Bot OAuth token 
+### User Bot OAuth token scopes
 
 Always starts with `xoxb`
 
-Required permissions: 
+Required scopes: 
 - channels:read
 - groups:read
-- team.billing:read
 - team:read
 - usergroups:read
 - users.profile:read
 - users:read
-- users:read.email
 
 ## Install
 
@@ -41,6 +36,8 @@ Required permissions:
   cd slack-module-svc
   go build main.go
   export KV_VIPER_FILE=./config.yaml
+  export USER_TOKEN=<user_token>
+  export BOT_TOKEN=<user_bot_token>
   ./main migrate up
   ./main run service
   ```

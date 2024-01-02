@@ -13,15 +13,15 @@ type Client interface {
 	GetWorkspaceName() (string, error)
 	GetConversationsForUser(userId string) ([]slack.Channel, error)
 	GetBillableInfoForUser(userId string) (bool, error)
-	GetBillableInfo() (map[string]slack.BillingActive, error)
+	GetBillableInfo() (map[string]bool, error)
 	GetConversation(title string) ([]Conversation, error)
 	GetConversationUsers(conversation Conversation) ([]data.User, error)
 }
 
 type client struct {
-	log             *logan.Entry
-	userAdminClient *slack.Client
-	superBotClient  *slack.Client
+	log        *logan.Entry
+	userClient *slack.Client
+	botClient  *slack.Client
 }
 
 type Conversation struct {
@@ -34,8 +34,8 @@ func New(cfg config.Config) Client {
 	config := cfg.SlackParams()
 
 	return &client{
-		log:             cfg.Log(),
-		userAdminClient: slack.New(config.UserToken),
-		superBotClient:  slack.New(config.BotToken),
+		log:        cfg.Log(),
+		userClient: slack.New(config.UserToken),
+		botClient:  slack.New(config.BotToken),
 	}
 }

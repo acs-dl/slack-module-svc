@@ -7,7 +7,7 @@ import (
 )
 
 func (s *client) GetConversationsForUser(userId string) ([]slack.Channel, error) {
-	channels, _, err := s.superBotClient.GetConversationsForUser(
+	channels, _, err := s.botClient.GetConversationsForUser(
 		&slack.GetConversationsForUserParameters{
 			UserID: userId,
 		},

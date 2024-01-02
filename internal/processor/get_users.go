@@ -8,7 +8,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/slack"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -80,7 +79,7 @@ func (p *processor) getConversations(link string) ([]slack.Conversation, error) 
 	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.GetConversation), []any{any(link)}, pqueue.LowPriority)
 }
 
-func (p *processor) getBillableInfo() (map[string]slackGo.BillingActive, error) {
+func (p *processor) getBillableInfo() (map[string]bool, error) {
 	return helpers.GetBillableInfo(p.pqueues.SuperUserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
@@ -111,7 +110,7 @@ func (p *processor) processUser(
 	workspaceName *string,
 	chat *slack.Conversation,
 	usersToUnverified *[]data.User,
-	billableInfo map[string]slackGo.BillingActive,
+	billableInfo map[string]bool,
 ) error {
 	user.CreatedAt = time.Now()
 	return p.managerQ.Transaction(func() error {
@@ -147,7 +146,7 @@ func (p *processor) processUser(
 			Link:        msg.Link,
 			CreatedAt:   user.CreatedAt,
 			SubmoduleId: chat.Id,
-			Bill:        bill.BillingActive,
+			Bill:        bill,
 		}); err != nil {
 			return errors.Wrap(err, "failed to upsert permission in db for message action", logan.F{
 				"action": msg.RequestId,

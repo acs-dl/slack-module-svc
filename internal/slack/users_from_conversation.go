@@ -46,14 +46,14 @@ func (s *client) getAllUsersFromConversation(chatId string) ([]data.User, error)
 			ChannelID: chatId,
 			Cursor:    cursor,
 		}
-		userIDs, nextCursor, err := s.superBotClient.GetUsersInConversation(params)
+		userIDs, nextCursor, err := s.botClient.GetUsersInConversation(params)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get users in conversation")
 		}
 
 		// Getting information about each user
 		for _, userID := range userIDs {
-			user, err := s.superBotClient.GetUserInfo(userID)
+			user, err := s.botClient.GetUserInfo(userID)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to get user info")
 			}

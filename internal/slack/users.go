@@ -6,7 +6,7 @@ import (
 )
 
 func (s *client) GetUsers() ([]slack.User, error) {
-	users, err := s.superBotClient.GetUsers()
+	users, err := s.botClient.GetUsers()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve users")
 	}

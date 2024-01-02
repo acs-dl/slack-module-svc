@@ -45,7 +45,7 @@ func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
 			Cursor: cursor,
 		}
 
-		channels, nextCursor, err := s.superBotClient.GetConversations(&params)
+		channels, nextCursor, err := s.botClient.GetConversations(&params)
 		if err != nil {
 			return nil, err
 		}

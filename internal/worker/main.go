@@ -182,7 +182,7 @@ func (w *worker) upsertUsers(user slackGo.User) error {
 	return nil
 }
 
-func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, billableInfo map[string]slackGo.BillingActive) error {
+func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, billableInfo map[string]bool) error {
 	channels, err := helpers.GetConversationsForUser(
 		w.pqueues.SuperUserPQueue,
 		any(w.client.GetConversationsForUser),
@@ -208,7 +208,7 @@ func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, bill
 			AccessLevel: w.userStatus(&user),
 			Link:        channel.Name,
 			SubmoduleId: channel.ID,
-			Bill:        bill.BillingActive,
+			Bill:        bill,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		})
