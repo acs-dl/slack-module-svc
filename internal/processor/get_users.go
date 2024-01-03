@@ -76,15 +76,15 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 }
 
 func (p *processor) getConversations(link string) ([]slack.Conversation, error) {
-	return helpers.GetConversations(p.pqueues.SuperUserPQueue, any(p.client.GetConversation), []any{any(link)}, pqueue.LowPriority)
+	return helpers.GetConversations(p.pqueues.BotPQueue, any(p.client.GetConversation), []any{any(link)}, pqueue.LowPriority)
 }
 
 func (p *processor) getBillableInfo() (map[string]bool, error) {
-	return helpers.GetBillableInfo(p.pqueues.SuperUserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
+	return helpers.GetBillableInfo(p.pqueues.UserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
 func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error) {
-	users, err := helpers.Users(p.pqueues.SuperUserPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
+	users, err := helpers.Users(p.pqueues.BotPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for chat", logan.F{
 			"chat_id":    chat.Id,
@@ -97,7 +97,7 @@ func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error
 
 func (p *processor) getWorkspaceName() (string, error) {
 	return helpers.GetWorkspaceName(
-		p.pqueues.SuperUserPQueue,
+		p.pqueues.BotPQueue,
 		any(p.client.GetWorkspaceName),
 		[]any{},
 		pqueue.LowPriority,

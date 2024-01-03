@@ -84,7 +84,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 	startTime := time.Now()
 
 	usersStore, err := helpers.GetUsers(
-		w.pqueues.SuperUserPQueue,
+		w.pqueues.BotPQueue,
 		any(w.client.GetUsers),
 		[]any{},
 		pqueue.LowPriority,
@@ -95,7 +95,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 
 	w.logger.Info("getting billable info from Slack API")
 	billableInfo, err := helpers.GetBillableInfo(
-		w.pqueues.SuperUserPQueue,
+		w.pqueues.UserPQueue,
 		any(w.client.GetBillableInfo),
 		pqueue.LowPriority,
 	)
@@ -105,7 +105,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 
 	w.logger.Info("getting workspaceName from Slack API")
 	workspaceName, err := helpers.GetWorkspaceName(
-		w.pqueues.SuperUserPQueue,
+		w.pqueues.BotPQueue,
 		any(w.client.GetWorkspaceName),
 		[]any{},
 		pqueue.LowPriority,
@@ -184,7 +184,7 @@ func (w *worker) upsertUsers(user slackGo.User) error {
 
 func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, billableInfo map[string]bool) error {
 	channels, err := helpers.GetConversationsForUser(
-		w.pqueues.SuperUserPQueue,
+		w.pqueues.BotPQueue,
 		any(w.client.GetConversationsForUser),
 		[]interface{}{user.ID},
 		pqueue.LowPriority,

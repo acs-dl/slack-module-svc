@@ -100,7 +100,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 }
 
 func (p *processor) getUser(slackID string) (*data.User, error) {
-	user, err := helpers.GetUser(p.pqueues.UserPQueue,
+	user, err := helpers.GetUser(p.pqueues.BotPQueue,
 		any(p.client.GetUser),
 		[]any{any(slackID)},
 		pqueue.NormalPriority,
