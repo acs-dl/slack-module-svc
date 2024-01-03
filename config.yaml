@@ -21,7 +21,6 @@ runners:
 
 rate_limit:
   requests_amount: 50 
-  # when you use bill, you should set this value to '20
   time_limit: 1m
 
 listener:
