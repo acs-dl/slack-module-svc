@@ -7,30 +7,11 @@ import (
 )
 
 func (s *client) GetConversationUsers(conversation Conversation) ([]data.User, error) {
-	users, err := s.getChatMembers(conversation)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get chat members")
-	}
-
-	return users, nil
-}
-
-func (s *client) getChatMembers(conversation Conversation) ([]data.User, error) {
-	users, err := s.getAllUsers(conversation.Id)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get all users")
-	}
-
-	return users, nil
-}
-
-func (s *client) getAllUsers(id string) ([]data.User, error) {
-	users, err := s.getAllUsersFromConversation(id)
+	users, err := s.getAllUsersFromConversation(conversation.Id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all users from chat")
 	}
 
-	s.log.Infof("found `%d` users", len(users))
 	return users, nil
 }
 

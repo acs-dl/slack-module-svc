@@ -22,7 +22,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	p.log.Infof("start handle message action with id `%s`", msg.RequestId)
 
 	if err := p.validateGetUsers(msg); err != nil {
-		return errors.Wrap(err, "failed to validate user")
+		return errors.Wrap(err, "failed to validate module payload")
 	}
 
 	chats, err := p.getConversations(msg.Link)

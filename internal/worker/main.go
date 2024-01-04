@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/acs-dl/slack-module-svc/internal/processor"
 	"github.com/acs-dl/slack-module-svc/internal/sender"
@@ -80,89 +79,91 @@ func (w *worker) Run(ctx context.Context) error {
 }
 
 func (w *worker) ProcessPermissions(_ context.Context) error {
-	w.logger.Info("getting users from api")
+	w.logger.Info("started processing permissions")
 	startTime := time.Now()
 
-	usersStore, err := helpers.GetUsers(
-		w.pqueues.BotPQueue,
-		any(w.client.GetUsers),
-		[]any{},
-		pqueue.LowPriority,
-	)
+	usersToUnverified, err := w.processUnverifiedUsers()
 	if err != nil {
-		return errors.Wrap(err, "failed to get users from Slack API")
+		return errors.Wrap(err, "failed to process users")
 	}
 
-	w.logger.Info("getting billable info from Slack API")
-	billableInfo, err := helpers.GetBillableInfo(
-		w.pqueues.UserPQueue,
-		any(w.client.GetBillableInfo),
-		pqueue.LowPriority,
-	)
+	err = w.sendUsers("", usersToUnverified)
 	if err != nil {
-		return errors.Wrap(err, "failed to get billable info from Slack API")
+		return errors.Wrap(err, "failed to publish unverified users")
 	}
 
-	w.logger.Info("getting workspaceName from Slack API")
-	workspaceName, err := helpers.GetWorkspaceName(
-		w.pqueues.BotPQueue,
-		any(w.client.GetWorkspaceName),
-		[]any{},
-		pqueue.LowPriority,
-	)
+	w.estimatedTime = time.Since(startTime)
+	w.logger.Info("finished processing permissions")
+
+	return nil
+}
+
+func (w *worker) processUnverifiedUsers() ([]data.User, error) {
+	w.logger.Info("getting users from api")
+	users, err := w.getUsers()
 	if err != nil {
-		return errors.Wrap(err, "failed to get workspaceName from Slack API")
+		return nil, errors.Wrap(err, "failed to get users from Slack API")
+	}
+
+	w.logger.Info("getting billable info from api")
+	billableInfo, err := w.getBillableInfo()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get billable info from Slack API")
+	}
+
+	w.logger.Info("getting workspace name from api")
+	workspaceName, err := w.getWorkspaceName()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get workspace name from Slack API")
 	}
 
 	usersToUnverified := make([]data.User, 0)
-	for _, user := range usersStore {
-		w.logger.Info("inserting user into table 'users'")
-		err := w.upsertUsers(user)
+	for _, user := range users {
+		userData, err := w.processUser(user)
 		if err != nil {
-			return errors.Wrap(err, "failed to insert user into table 'users'")
-		}
-
-		dbUser, err := w.getUserFromDbBySlackId(user.ID)
-		if err != nil {
-			return errors.Wrap(err, "failed to get user from db", logan.F{
-				"user_id": user.ID,
-				"action":  ProcessUserAction,
+			return nil, errors.Wrap(err, "failed to process user", logan.F{
+				"slack_id": user.ID,
 			})
 		}
 
-		copiedName := user.Name
-		copiedRealName := user.RealName
-
-		userData := data.User{
-			Id:       dbUser.Id,
-			Username: &copiedName,
-			Realname: &copiedRealName,
-			SlackId:  user.ID,
-		}
-
-		usersToUnverified = append(usersToUnverified, userData)
-
+		usersToUnverified = append(usersToUnverified, *userData)
+		
 		w.logger.Info("inserting permissions into table 'permissions'")
 		err = w.upsertPermissions(user, workspaceName, billableInfo)
 		if err != nil {
-			return errors.Wrap(err, "failed to process permissions for user", logan.F{
+			return nil, errors.Wrap(err, "failed to process permissions for user", logan.F{
 				"user_id": user.ID,
 			})
 		}
 	}
 
-	msg := data.ModulePayload{}
-	err = w.sendUsers(msg.RequestId, usersToUnverified)
+	return usersToUnverified, nil
+}
+
+func (w *worker) processUser(user slackGo.User) (*data.User, error) {
+	w.logger.Info("inserting user into table 'users'")
+	err := w.upsertUsers(user)
 	if err != nil {
-		return errors.Wrap(err, "failed to publish users", logan.F{
-			"action": msg.RequestId,
+		return nil, errors.Wrap(err, "failed to insert user into table 'users'")
+	}
+
+	dbUser, err := w.getUserFromDbBySlackId(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get user from db", logan.F{
+			"user_id": user.ID,
+			"action":  ProcessUserAction,
 		})
 	}
 
-	w.logger.Info("ProcessPermissions completed")
-	w.estimatedTime = time.Since(startTime)
+	copiedName := user.Name
+	copiedRealName := user.RealName
 
-	return nil
+	return &data.User{
+		Id:       dbUser.Id,
+		Username: &copiedName,
+		Realname: &copiedRealName,
+		SlackId:  user.ID,
+	}, nil
 }
 
 func (w *worker) upsertUsers(user slackGo.User) error {
@@ -183,12 +184,7 @@ func (w *worker) upsertUsers(user slackGo.User) error {
 }
 
 func (w *worker) upsertPermissions(user slackGo.User, workspaceName string, billableInfo map[string]bool) error {
-	channels, err := helpers.GetConversationsForUser(
-		w.pqueues.BotPQueue,
-		any(w.client.GetConversationsForUser),
-		[]interface{}{user.ID},
-		pqueue.LowPriority,
-	)
+	channels, err := w.getConversationsForUser(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get user conversations")
 	}
