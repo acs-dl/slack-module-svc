@@ -19,6 +19,7 @@ type Config interface {
 	JwtParams() *JwtCfg
 	RateLimit() *RateLimitCfg
 	Runners() *RunnersCfg
+	SlackParams() SlackConfig
 
 	// Registrator config
 	Registrator() RegistratorConfig
@@ -32,12 +33,12 @@ type config struct {
 	getter kv.Getter
 
 	// other config values
-	slack       comfig.Once
 	amqp        comfig.Once
 	registrator comfig.Once
 	jwtCfg      comfig.Once
 	rateLimit   comfig.Once
 	runners     comfig.Once
+	slackCfg    comfig.Once
 }
 
 func New(getter kv.Getter) Config {

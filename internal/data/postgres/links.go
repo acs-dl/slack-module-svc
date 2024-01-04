@@ -49,7 +49,7 @@ func (r LinksQ) Get() (*data.Link, error) {
 		return nil, nil
 	}
 
-	return &result, err
+	return &result, errors.Wrap(err, "failed to get links")
 }
 
 func (r LinksQ) Select() ([]data.Link, error) {
@@ -57,12 +57,13 @@ func (r LinksQ) Select() ([]data.Link, error) {
 
 	err := r.db.Select(&result, r.selectBuilder)
 
-	return result, err
+	return result, errors.Wrap(err, "failed to select links")
 }
 
 func (r LinksQ) Insert(link data.Link) error {
 	insertStmt := sq.Insert(linksTableName).SetMap(structs.Map(link)).Suffix("ON CONFLICT (link) DO NOTHING")
 	err := r.db.Exec(insertStmt)
+	
 	return errors.Wrap(err, "failed to insert link")
 }
 
@@ -71,11 +72,11 @@ func (r LinksQ) Delete() error {
 
 	err := r.db.Select(&deleted, r.deleteBuilder.Suffix("RETURNING *"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete links")
 	}
 
 	if len(deleted) == 0 {
-		return errors.Errorf("no such data to delete")
+		return sql.ErrNoRows
 	}
 
 	return nil

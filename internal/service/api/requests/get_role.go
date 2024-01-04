@@ -25,8 +25,7 @@ func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
 }
 
 func validateGetRoleRequest(request GetRoleRequest) error {
-	accessLevels := data.MapKeysToSlice(data.Roles)
 	return validation.Errors{
-		"accessLevel": validation.Validate(request.AccessLevel, validation.Required, validation.In(accessLevels...)),
+		"accessLevel": validation.Validate(request.AccessLevel, validation.Required, validation.In(data.GetRoles()...)),
 	}.Filter()
 }

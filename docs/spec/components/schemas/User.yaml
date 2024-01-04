@@ -25,7 +25,7 @@ allOf:
           slack_id:
             type: string
             description: id from slack
-            example: "mhrynenko"
+            example: U06BHZDSE70
           module:
             type: string
             description: module name

@@ -52,7 +52,7 @@ func (r ConversationsQ) Get() (*data.Conversation, error) {
 		return nil, nil
 	}
 
-	return &result, err
+	return &result, errors.Wrap(err, "failed to get conversation")
 }
 
 func (r ConversationsQ) Select() ([]data.Conversation, error) {
@@ -60,7 +60,7 @@ func (r ConversationsQ) Select() ([]data.Conversation, error) {
 
 	err := r.db.Select(&result, r.selectBuilder)
 
-	return result, err
+	return result, errors.Wrap(err, "failed to select conversations")
 }
 
 func (r ConversationsQ) Upsert(conversation data.Conversation) error {
@@ -73,6 +73,7 @@ func (r ConversationsQ) Upsert(conversation data.Conversation) error {
 		Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
 
 	err := r.db.Exec(query)
+
 	return errors.Wrap(err, "failed to insert conversation")
 }
 
@@ -81,7 +82,7 @@ func (r ConversationsQ) Delete() error {
 
 	err := r.db.Select(&deleted, r.deleteBuilder.Suffix("RETURNING *"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete conversations")
 	}
 
 	if len(deleted) == 0 {

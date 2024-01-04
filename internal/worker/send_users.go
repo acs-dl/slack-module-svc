@@ -5,27 +5,29 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (w *Worker) sendUsers(uuid string, users []data.User) error {
+func (w *worker) sendUsers(uuid string, users []data.User) error {
 	unverifiedUsers := make([]data.UnverifiedUser, 0)
 	for i := range users {
 		if users[i].Id != nil {
 			continue
 		}
-		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 
+		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
-			w.logger.WithError(err).Errorf("failed to select permissions by date `%s`", users[i].CreatedAt.String())
-			return errors.Wrap(err, "failed to select permissions by date")
+			return errors.Wrap(err, "failed to select permissions by date", logan.F{
+				"date": users[i].CreatedAt.String(),
+			})
 		}
 
 		if permission == nil {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, data.СonvertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUsers = append(unverifiedUsers, data.ConvertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -33,21 +35,21 @@ func (w *Worker) sendUsers(uuid string, users []data.User) error {
 		Users:  unverifiedUsers,
 	})
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to marshal unverified users list")
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
-	err = w.sender.SendMessageToCustomChannel(data.UnverifiedService, w.buildMessage(uuid, marshaledPayload))
+	err = w.sender.SendMessageToCustomChannel(w.unverifiedTopic, w.buildMessage(uuid, marshaledPayload))
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to publish users to `slack-module`")
-		return errors.Wrap(err, "failed to publish users to `slack-module`")
+		return errors.Wrap(err, "failed to publish users", logan.F{
+			"topic": w.unverifiedTopic,
+		})
 	}
 
 	w.logger.Infof("successfully published users to `unverified-svc`")
 	return nil
 }
 
-func (w *Worker) buildMessage(uuid string, payload []byte) *message.Message {
+func (w *worker) buildMessage(uuid string, payload []byte) *message.Message {
 	return &message.Message{
 		UUID:     uuid,
 		Metadata: nil,

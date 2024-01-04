@@ -33,7 +33,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	permission, err := PermissionsQ(r).FilterBySlackIds(user.SlackId).Get()
 	if err != nil {
 		Log(r).Errorf("failed to get submodule for user with id `%d`", userId)
-		ape.RenderErr(w, problems.NotFound())
+		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
