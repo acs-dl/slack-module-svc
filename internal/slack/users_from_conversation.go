@@ -6,35 +6,12 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) ConversationUsersFromApi(conversation Conversation) ([]data.User, error) {
-
-	users, err := s.getChatMembers(conversation)
+func (s *client) GetConversationUsers(conversation Conversation) ([]data.User, error) {
+	users, err := s.getAllUsersFromConversation(conversation.Id)
 	if err != nil {
-		s.log.Errorf("failed to get chat members")
-		return nil, errors.Wrap(err, "failed to get chat members")
+		return nil, errors.Wrap(err, "failed to get all users from chat")
 	}
 
-	return users, nil
-}
-
-func (s *client) getChatMembers(conversation Conversation) ([]data.User, error) {
-	users, err := s.getAllUsers(conversation.Id)
-	if err != nil {
-		s.log.Errorf("failed to get all users")
-		return nil, err
-	}
-
-	return users, nil
-}
-
-func (s *client) getAllUsers(id string) ([]data.User, error) {
-	users, err := s.getAllUsersFromConversation(id)
-	if err != nil {
-		s.log.Errorf("failed to get all users from chat")
-		return nil, err
-	}
-
-	s.log.Infof("found `%d` users", len(users))
 	return users, nil
 }
 
@@ -50,16 +27,16 @@ func (s *client) getAllUsersFromConversation(chatId string) ([]data.User, error)
 			ChannelID: chatId,
 			Cursor:    cursor,
 		}
-		userIDs, nextCursor, err := s.superBotClient.GetUsersInConversation(params)
+		userIDs, nextCursor, err := s.botClient.GetUsersInConversation(params)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to get users in conversation")
 		}
 
 		// Getting information about each user
 		for _, userID := range userIDs {
-			user, err := s.superBotClient.GetUserInfo(userID)
+			user, err := s.botClient.GetUserInfo(userID)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "failed to get user info")
 			}
 			users = append(users, data.User{
 				Username:    &user.Name,

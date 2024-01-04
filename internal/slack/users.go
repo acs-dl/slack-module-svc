@@ -1,17 +1,14 @@
 package slack
 
 import (
-	"fmt"
-
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) FetchUsers() ([]slack.User, error) {
-
-	users, err := s.superBotClient.GetUsers()
+func (s *client) GetUsers() ([]slack.User, error) {
+	users, err := s.botClient.GetUsers()
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error retrieving users: %v.", users))
+		return nil, errors.Wrap(err, "failed to retrieve users")
 	}
 
 	return users, nil

@@ -48,7 +48,7 @@ func (q ResponsesQ) Insert(response data.Response) error {
 
 	query := sq.Insert(responsesTableName).SetMap(clauses)
 
-	return q.db.Exec(query)
+	return errors.Wrap(q.db.Exec(query), "failed to insert response")
 }
 
 func (q ResponsesQ) Select() ([]data.Response, error) {
@@ -56,7 +56,7 @@ func (q ResponsesQ) Select() ([]data.Response, error) {
 
 	err := q.db.Select(&result, q.selectBuilder)
 
-	return result, err
+	return result, errors.Wrap(err, "failed to select responses")
 }
 
 func (q ResponsesQ) Get() (*data.Response, error) {
@@ -67,7 +67,7 @@ func (q ResponsesQ) Get() (*data.Response, error) {
 		return nil, nil
 	}
 
-	return &result, err
+	return &result, errors.Wrap(err, "failed to get response")
 }
 
 func (q ResponsesQ) Delete() error {
@@ -75,11 +75,11 @@ func (q ResponsesQ) Delete() error {
 
 	err := q.db.Select(&deleted, q.deleteBuilder.Suffix("RETURNING *"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete responses")
 	}
 
 	if len(deleted) == 0 {
-		return errors.Errorf("no such data to delete")
+		return sql.ErrNoRows
 	}
 
 	return nil

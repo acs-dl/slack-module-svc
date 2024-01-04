@@ -4,11 +4,10 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) WorkspaceName() (string, error) {
-
-	team, err := s.userAdminClient.GetTeamInfo()
+func (s *client) GetWorkspaceName() (string, error) {
+	team, err := s.botClient.GetTeamInfo()
 	if err != nil {
-		return "", errors.Wrap(err, "Error retrieving team info for the transferred token.")
+		return "", errors.Wrap(err, "failed to retrieve team info")
 	}
 
 	return team.Name, nil

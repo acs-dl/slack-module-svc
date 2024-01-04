@@ -3,7 +3,7 @@ log:
   disable_sentry: true
 
 db:
-  url: "postgres://postgres:github@localhost:5432/github?sslmode=disable"
+  url: db_url
 
 amqp:
   topic: "slack"
@@ -21,15 +21,13 @@ runners:
 
 rate_limit:
   requests_amount: 50 
-#  when you use bill, you should set this value to '20
   time_limit: 1m
 
 listener:
-  addr: :8001
-
+  addr: :9000
 
 registrator:
-  outer_url: "http://localhost:8000/integrations/orchestrator/modules" #endpoint to register MODULE
+  outer_url: "http://localhost:80/integrations/orchestrator/modules" #endpoint to register MODULE
   inner_url: "http://localhost:9000/integrations/slack" #endpoint to MODULE itself
   topic: "slack" #MODULE topic
   title: "Slack" #MODULE title

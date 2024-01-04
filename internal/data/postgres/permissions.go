@@ -22,7 +22,6 @@ const (
 	permissionsLinkColumn        = permissionsTableName + ".link"
 	permissonBillColumn          = permissionsTableName + ".bill"
 	permissionsSubmoduleIdColumn = permissionsTableName + ".submodule_id"
-	//permissionsSubmoduleAccessHashColumn = permissionsTableName + ".submodule_access_hash"
 	permissionsAccessLevelColumn = permissionsTableName + ".access_level"
 	permissionsCreatedAtColumn   = permissionsTableName + ".created_at"
 	permissionsUpdatedAtColumn   = permissionsTableName + ".updated_at"
@@ -80,11 +79,10 @@ func (q PermissionsQ) Select() ([]data.Permission, error) {
 
 	err := q.db.Select(&result, q.selectBuilder)
 
-	return result, err
+	return result, errors.Wrap(err, "failed to select permissions")
 }
 
 func (q PermissionsQ) Upsert(permission data.Permission) error {
-
 	updateStmt, args := sq.Update(" ").
 		Set("updated_at", time.Now()).
 		Set("bill", permission.Bill).
@@ -95,7 +93,7 @@ func (q PermissionsQ) Upsert(permission data.Permission) error {
 	query := sq.Insert(permissionsTableName).SetMap(structs.Map(permission)).
 		Suffix("ON CONFLICT (slack_id, submodule_id) DO "+updateStmt, args...)
 
-	return q.db.Exec(query)
+	return errors.Wrap(q.db.Exec(query), "failed to insert permission")
 }
 
 func (q PermissionsQ) Get() (*data.Permission, error) {
@@ -106,7 +104,7 @@ func (q PermissionsQ) Get() (*data.Permission, error) {
 		return nil, nil
 	}
 
-	return &result, err
+	return &result, errors.Wrap(err, "failed to get permission")
 }
 
 func (q PermissionsQ) Delete() error {
@@ -114,11 +112,11 @@ func (q PermissionsQ) Delete() error {
 
 	err := q.db.Select(&deleted, q.deleteBuilder.Suffix("RETURNING *"))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete permissions")
 	}
 
 	if len(deleted) == 0 {
-		return errors.Errorf("no such data to delete")
+		return sql.ErrNoRows
 	}
 
 	return nil
@@ -154,7 +152,7 @@ func (q PermissionsQ) GetTotalCount() (int64, error) {
 	var count int64
 	err := q.db.Get(&count, q.selectBuilder)
 
-	return count, err
+	return count, errors.Wrap(err, "failed to get total count")
 }
 
 func (q PermissionsQ) Page(pageParams pgdb.OffsetPageParams) data.Permissions {

@@ -32,7 +32,7 @@ func Run(cfg config.Config) {
 
 	stopProcessQueue := make(chan struct{})
 	pqueues := pqueue.NewPQueues()
-	go pqueues.SuperUserPQueue.ProcessQueue(cfg.RateLimit().RequestsAmount, cfg.RateLimit().TimeLimit, stopProcessQueue)
+	go pqueues.BotPQueue.ProcessQueue(cfg.RateLimit().RequestsAmount, cfg.RateLimit().TimeLimit, stopProcessQueue)
 	go pqueues.UserPQueue.ProcessQueue(cfg.RateLimit().RequestsAmount, cfg.RateLimit().TimeLimit, stopProcessQueue)
 	ctx = pqueue.CtxPQueues(&pqueues, ctx)
 	ctx = handlers.CtxConfig(cfg, ctx)

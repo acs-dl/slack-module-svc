@@ -92,7 +92,9 @@ func (r *receiver) listenMessages(ctx context.Context) error {
 func (r *receiver) subscribeForTopic(ctx context.Context, topic string) error {
 	msgChan, err := r.subscriber.Subscribe(ctx, topic)
 	if err != nil {
-		return errors.Wrap(err, "failed to subscribe for topic "+topic)
+		return errors.Wrap(err, "failed to subscribe for topic", logan.F{
+			"topic": topic,
+		})
 	}
 	r.log.Info("successfully subscribed for topic ", topic)
 
@@ -116,15 +118,17 @@ func (r *receiver) HandleNewMessage(msg data.ModulePayload) (string, error) {
 
 	err := validateMessageAction(msg)
 	if err != nil {
-		r.log.WithError(err).Error("no such action to handle for message with id `%s`", msg.RequestId)
-		return data.FAILURE, errors.New("no such action " + msg.Action + " to handle for message with id " + msg.RequestId)
+		return data.FAILURE, errors.Wrap(err, "no such action to handle for message", logan.F{
+			"action": msg.RequestId,
+		})
 	}
 
 	requestHandler := handleActions[msg.Action]
 	requestStatus, err := requestHandler(r, msg)
 	if err != nil {
-		r.log.WithError(err).Errorf("failed to handle message with id `%s`", msg.RequestId)
-		return requestStatus, err
+		return requestStatus, errors.Wrap(err, "failed to handle message", logan.F{
+			"action": msg.RequestId,
+		})
 	}
 
 	r.log.Infof("finish handling message with id `%s`", msg.RequestId)
@@ -137,11 +141,12 @@ func (r *receiver) processMessage(msg *message.Message) error {
 	var queueOutput data.ModulePayload
 	err := json.Unmarshal(msg.Payload, &queueOutput)
 	if err != nil {
-		r.log.WithError(err).Errorf("failed to unmarshal message", msg.UUID)
-		return errors.Wrap(err, "failed to unmarshal message "+msg.UUID)
+		return errors.Wrap(err, "failed to unmarshal message", logan.F{
+			"message_uuid": msg.UUID,
+		})
 	}
-	queueOutput.RequestId = msg.UUID
 
+	queueOutput.RequestId = msg.UUID
 	var errMsg *string = nil
 	requestStatus, err := r.HandleNewMessage(queueOutput)
 	if err != nil {
@@ -157,8 +162,9 @@ func (r *receiver) processMessage(msg *message.Message) error {
 		Payload: json.RawMessage(msg.Payload),
 	})
 	if err != nil {
-		r.log.WithError(err).Errorf("failed to create response", msg.UUID)
-		return errors.Wrap(err, "failed to create response "+msg.UUID)
+		return errors.Wrap(err, "failed to create response", logan.F{
+			"message_uuid": msg.UUID,
+		})
 	}
 
 	r.log.Info("finished processing message ", msg.UUID)

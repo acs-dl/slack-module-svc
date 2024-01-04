@@ -1,28 +1,19 @@
 package slack
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/slack-go/slack"
-
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) ConversationFromApi(title string) ([]Conversation, error) {
-	chats, err := s.getConversationFlow(title)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("failed to get chat `%s`", title))
-	}
-
-	s.log.Infof("successfully got chat")
-	return chats, nil
-}
-
-func (s *client) getConversationFlow(title string) ([]Conversation, error) {
+func (s *client) GetConversation(title string) ([]Conversation, error) {
 	chats, err := s.findConversationByTitle(title)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{
+			"chat_title": title,
+		})
 	}
 
 	return chats, nil
@@ -42,7 +33,7 @@ func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
 			Cursor: cursor,
 		}
 
-		channels, nextCursor, err := s.superBotClient.GetConversations(&params)
+		channels, nextCursor, err := s.botClient.GetConversations(&params)
 		if err != nil {
 			return nil, err
 		}

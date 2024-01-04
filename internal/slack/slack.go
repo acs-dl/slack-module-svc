@@ -1,9 +1,6 @@
 package slack
 
 import (
-	"context"
-	"os"
-
 	"github.com/acs-dl/slack-module-svc/internal/config"
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
@@ -11,19 +8,20 @@ import (
 )
 
 type Client interface {
-	UserFromApi(userId string) (*data.User, error)
-	FetchUsers() ([]slack.User, error)
-	WorkspaceName() (string, error)
-	ConversationsForUser(userId string) ([]slack.Channel, error)
-	BillableInfoForUser(userId string) (bool, error)
-	ConversationFromApi(title string) ([]Conversation, error)
-	ConversationUsersFromApi(conversation Conversation) ([]data.User, error)
+	GetUser(userId string) (*data.User, error)
+	GetUsers() ([]slack.User, error)
+	GetWorkspaceName() (string, error)
+	GetConversationsForUser(userId string) ([]slack.Channel, error)
+	GetBillableInfoForUser(userId string) (bool, error)
+	GetBillableInfo() (map[string]bool, error)
+	GetConversation(title string) ([]Conversation, error)
+	GetConversationUsers(conversation Conversation) ([]data.User, error)
 }
 
 type client struct {
-	log             *logan.Entry
-	userAdminClient *slack.Client
-	superBotClient  *slack.Client
+	log        *logan.Entry
+	userClient *slack.Client
+	botClient  *slack.Client
 }
 
 type Conversation struct {
@@ -33,13 +31,11 @@ type Conversation struct {
 }
 
 func New(cfg config.Config) Client {
-	return &client{
-		log:             cfg.Log(),
-		userAdminClient: slack.New(os.Getenv("USER_TOKEN")),
-		superBotClient:  slack.New(os.Getenv("BOT_TOKEN")),
-	}
-}
+	config := cfg.SlackParams()
 
-func ClientInstance(ctx context.Context) Client {
-	return ctx.Value("slack").(Client)
+	return &client{
+		log:        cfg.Log(),
+		userClient: slack.New(config.UserToken),
+		botClient:  slack.New(config.BotToken),
+	}
 }

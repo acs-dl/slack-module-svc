@@ -14,14 +14,14 @@ type PriorityQueueInterface interface {
 }
 
 type PQueues struct {
-	SuperUserPQueue *PriorityQueue
-	UserPQueue      *PriorityQueue
+	UserPQueue *PriorityQueue
+	BotPQueue  *PriorityQueue
 }
 
 func NewPQueues() PQueues {
 	return PQueues{
-		SuperUserPQueue: NewPriorityQueue().(*PriorityQueue),
-		UserPQueue:      NewPriorityQueue().(*PriorityQueue),
+		UserPQueue: NewPriorityQueue().(*PriorityQueue),
+		BotPQueue:  NewPriorityQueue().(*PriorityQueue),
 	}
 }
 

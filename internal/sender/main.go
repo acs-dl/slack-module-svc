@@ -57,22 +57,23 @@ func (s *sender) processMessages(ctx context.Context) error {
 
 	responses, err := s.responsesQ.Select()
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to select responses")
 		return errors.Wrap(err, "failed to select responses")
 	}
 
 	for _, response := range responses {
-		s.log.Info("started processing response with id ", response.ID)
+		s.log.Infof("started processing response with id %s", response.ID)
 		err = (*s.publisher).Publish(s.topic, s.buildResponse(response))
 		if err != nil {
-			s.log.WithError(err).Errorf("failed to process response `%s", response.ID)
-			return errors.Wrap(err, "failed to process response: "+response.ID)
+			return errors.Wrap(err, "failed to process response", logan.F{
+				"response_id": response.ID,
+			})
 		}
 
 		err = s.responsesQ.FilterByIds(response.ID).Delete()
 		if err != nil {
-			s.log.WithError(err).Errorf("failed to delete processed response `%s", response.ID)
-			return errors.Wrap(err, "failed to delete processed response: "+response.ID)
+			return errors.Wrap(err, "failed to delete processed response `%s", logan.F{
+				"response_id": response.ID,
+			})
 		}
 		s.log.Info("finished processing response with id ", response.ID)
 	}
@@ -97,8 +98,10 @@ func (s *sender) buildResponse(response data.Response) *message.Message {
 func (s *sender) SendMessageToCustomChannel(topic string, msg *message.Message) error {
 	err := (*s.publisher).Publish(topic, msg)
 	if err != nil {
-		s.log.WithError(err).Errorf("failed to send msg `%s to `%s`", msg.UUID, topic)
-		return errors.Wrap(err, "failed to send msg: "+msg.UUID)
+		return errors.Wrap(err, "failed to send msg `%s to `%s`", logan.F{
+			"message_id": msg.UUID,
+			"topic":      topic,
+		})
 	}
 
 	return nil

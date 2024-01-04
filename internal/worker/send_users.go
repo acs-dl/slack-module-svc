@@ -15,18 +15,19 @@ func (w *worker) sendUsers(uuid string, users []data.User) error {
 		if users[i].Id != nil {
 			continue
 		}
-		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 
+		permission, err := w.permissionsQ.FilterBySlackIds(users[i].SlackId).FilterByGreaterTime(users[i].CreatedAt).Get()
 		if err != nil {
-			w.logger.WithError(err).Errorf("failed to select permissions by date `%s`", users[i].CreatedAt.String())
-			return errors.Wrap(err, "failed to select permissions by date")
+			return errors.Wrap(err, "failed to select permissions by date", logan.F{
+				"date": users[i].CreatedAt.String(),
+			})
 		}
 
 		if permission == nil {
 			continue
 		}
 
-		unverifiedUsers = append(unverifiedUsers, convertUserToUnverifiedUser(users[i], permission.Link))
+		unverifiedUsers = append(unverifiedUsers, data.ConvertUserToUnverifiedUser(users[i], permission.Link))
 	}
 
 	marshaledPayload, err := json.Marshal(data.UnverifiedPayload{
@@ -34,7 +35,6 @@ func (w *worker) sendUsers(uuid string, users []data.User) error {
 		Users:  unverifiedUsers,
 	})
 	if err != nil {
-		w.logger.WithError(err).Errorf("failed to marshal unverified users list")
 		return errors.Wrap(err, "failed to marshal unverified users list")
 	}
 
@@ -54,17 +54,5 @@ func (w *worker) buildMessage(uuid string, payload []byte) *message.Message {
 		UUID:     uuid,
 		Metadata: nil,
 		Payload:  payload,
-	}
-}
-
-func convertUserToUnverifiedUser(user data.User, submodule string) data.UnverifiedUser {
-	return data.UnverifiedUser{
-		CreatedAt: user.CreatedAt,
-		Module:    data.ModuleName,
-		Submodule: submodule,
-		ModuleId:  user.SlackId,
-		Username:  user.Username,
-		RealName:  user.Realname,
-		SlackId:   user.SlackId,
 	}
 }

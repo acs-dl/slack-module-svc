@@ -33,10 +33,10 @@ var Roles = map[string]string{
 	App:            "App",
 }
 
-func MapKeysToSlice(m map[string]string) []interface{} {
-	keys := make([]interface{}, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
+func GetRoles() []interface{} {
+	roles := make([]interface{}, 0, len(Roles))
+	for role := range Roles {
+		roles = append(roles, role)
 	}
-	return keys
+	return roles
 }

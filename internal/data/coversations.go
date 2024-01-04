@@ -10,7 +10,6 @@ type Conversations interface {
 
 	FilterByTitles(titles ...string) Conversations
 	FilterByIds(ids ...string) Conversations
-	//FilterByAccessHash(accessHash *int64) Conversations
 }
 
 type Conversation struct {

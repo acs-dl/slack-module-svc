@@ -6,6 +6,7 @@ import (
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
 
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
@@ -23,7 +24,9 @@ func (r *registrar) UnregisterModule() error {
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("error in response, status %s", res.Status))
+		return errors.From(errors.New("error in response"), logan.F{
+			"status": res.Status,
+		})
 	}
 
 	r.logger.Infof("finished unregister module `%s`", data.ModuleName)

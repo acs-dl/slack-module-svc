@@ -16,7 +16,6 @@ const (
 	ServiceName = data.ModuleName + "-processor"
 
 	UpdateSlackAction = "update_slack"
-
 	SetUsersAction    = "set_users"
 	DeleteUsersAction = "delete_users"
 )
