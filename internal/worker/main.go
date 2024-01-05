@@ -82,6 +82,11 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 	w.logger.Info("started processing permissions")
 	startTime := time.Now()
 
+	err := w.processConversations()
+	if err != nil {
+		return errors.Wrap(err, "failed to process conversations")
+	}
+
 	usersToUnverified, err := w.processUnverifiedUsers()
 	if err != nil {
 		return errors.Wrap(err, "failed to process users")
@@ -127,7 +132,7 @@ func (w *worker) processUnverifiedUsers() ([]data.User, error) {
 		}
 
 		usersToUnverified = append(usersToUnverified, *userData)
-		
+
 		w.logger.Info("inserting permissions into table 'permissions'")
 		err = w.upsertPermissions(user, workspaceName, billableInfo)
 		if err != nil {
@@ -164,6 +169,22 @@ func (w *worker) processUser(user slackGo.User) (*data.User, error) {
 		Realname: &copiedRealName,
 		SlackId:  user.ID,
 	}, nil
+}
+
+func (w *worker) processConversations() error {
+	w.logger.Info("getting conversations from api")
+	conversations, err := w.getConversations()
+	if err != nil {
+		return errors.Wrap(err, "failed to get conversations from Slack API")
+	}
+
+	for _, conversation := range conversations {
+		if err := w.processor.StoreChatInDatabaseSafe(&conversation); err != nil {
+			return errors.Wrap(err, "failed to save conversation in db")
+		}
+	}
+
+	return nil
 }
 
 func (w *worker) upsertUsers(user slackGo.User) error {

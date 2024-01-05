@@ -23,6 +23,7 @@ const (
 type Processor interface {
 	HandleGetUsersAction(msg data.ModulePayload) error
 	HandleVerifyUserAction(msg data.ModulePayload) (string, error)
+	StoreChatInDatabaseSafe(chat *slack.Conversation) error
 }
 
 type processor struct {

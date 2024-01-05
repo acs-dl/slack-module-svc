@@ -25,7 +25,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 		return errors.Wrap(err, "failed to validate module payload")
 	}
 
-	chats, err := p.getConversations(msg.Link)
+	chats, err := p.getConversationsByLink(msg.Link)
 	if err != nil {
 		return errors.Wrap(err, "failed to get chat from api", logan.F{
 			"link": msg.Link,
@@ -38,7 +38,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	}
 
 	for _, chat := range chats {
-		if err := p.storeChatInDatabaseSafe(&chat); err != nil {
+		if err := p.StoreChatInDatabaseSafe(&chat); err != nil {
 			return errors.Wrap(err, "failed to handle db chat flow")
 		}
 
@@ -75,8 +75,8 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	return nil
 }
 
-func (p *processor) getConversations(link string) ([]slack.Conversation, error) {
-	return helpers.GetConversations(p.pqueues.BotPQueue, any(p.client.GetConversation), []any{any(link)}, pqueue.LowPriority)
+func (p *processor) getConversationsByLink(link string) ([]slack.Conversation, error) {
+	return helpers.GetConversationsByLink(p.pqueues.BotPQueue, any(p.client.GetConversationsByLink), []any{any(link)}, pqueue.LowPriority)
 }
 
 func (p *processor) getBillableInfo() (map[string]bool, error) {
@@ -157,7 +157,7 @@ func (p *processor) processUser(
 	})
 }
 
-func (p *processor) storeChatInDatabaseSafe(chat *slack.Conversation) error {
+func (p *processor) StoreChatInDatabaseSafe(chat *slack.Conversation) error {
 	err := p.managerQ.Conversations.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,

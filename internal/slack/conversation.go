@@ -8,7 +8,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversation(title string) ([]Conversation, error) {
+func (s *client) GetConversationsByLink(title string) ([]Conversation, error) {
 	chats, err := s.findConversationByTitle(title)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{

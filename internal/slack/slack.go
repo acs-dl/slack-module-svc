@@ -14,7 +14,8 @@ type Client interface {
 	GetConversationsForUser(userId string) ([]slack.Channel, error)
 	GetBillableInfoForUser(userId string) (bool, error)
 	GetBillableInfo() (map[string]bool, error)
-	GetConversation(title string) ([]Conversation, error)
+	GetConversationsByLink(title string) ([]Conversation, error)
+	GetConversations() ([]Conversation, error)
 	GetConversationUsers(conversation Conversation) ([]data.User, error)
 }
 
