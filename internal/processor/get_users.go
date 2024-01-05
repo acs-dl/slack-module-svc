@@ -38,7 +38,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	}
 
 	for _, chat := range chats {
-		if err := p.StoreChatInDatabaseSafe(&chat); err != nil {
+		if err := p.UpsertConversation(&chat); err != nil {
 			return errors.Wrap(err, "failed to handle db chat flow")
 		}
 
@@ -157,7 +157,7 @@ func (p *processor) processUser(
 	})
 }
 
-func (p *processor) StoreChatInDatabaseSafe(chat *slack.Conversation) error {
+func (p *processor) UpsertConversation(chat *slack.Conversation) error {
 	err := p.managerQ.Conversations.Upsert(data.Conversation{
 		Title:         chat.Title,
 		Id:            chat.Id,

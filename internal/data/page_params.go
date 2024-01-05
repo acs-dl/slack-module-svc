@@ -5,17 +5,12 @@ import (
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/resources"
-	"gitlab.com/distributed_lab/logan/v3"
-
 	"gitlab.com/distributed_lab/kit/pgdb"
-
-	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
 const (
 	pageParamLimit  = "page[limit]"
 	pageParamNumber = "page[number]"
-	pageParamCursor = "page[cursor]"
 	pageParamOrder  = "page[order]"
 )
 
@@ -28,27 +23,6 @@ const (
 	// OrderDesc - descending order
 	OrderDesc OrderType = "desc"
 )
-
-const (
-	OrderAscending         = "asc"
-	OrderDescending        = "desc"
-	defaultLimit    uint64 = 15
-	maxLimit        uint64 = 100
-)
-
-// Invert - inverts order by
-func (o OrderType) Invert() OrderType {
-	switch o {
-	case OrderDesc:
-		return OrderAsc
-	case OrderAsc:
-		return OrderDesc
-	default:
-		panic(errors.From(errors.New("unexpected order type"), logan.F{
-			"order_type": o,
-		}))
-	}
-}
 
 func GetOffsetLinksForPGParams(r *http.Request, p pgdb.OffsetPageParams) *resources.Links {
 	result := resources.Links{

@@ -179,7 +179,7 @@ func (w *worker) processConversations() error {
 	}
 
 	for _, conversation := range conversations {
-		if err := w.processor.StoreChatInDatabaseSafe(&conversation); err != nil {
+		if err := w.processor.UpsertConversation(&conversation); err != nil {
 			return errors.Wrap(err, "failed to save conversation in db")
 		}
 	}
