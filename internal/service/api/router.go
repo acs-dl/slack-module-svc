@@ -36,8 +36,6 @@ func (r *router) apiRouter() chi.Router {
 
 	router.Route("/integrations/slack", func(r chi.Router) {
 		r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-			Get("/get_input", handlers.GetInputs)
-		r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
 			Get("/get_available_roles", handlers.GetRoles)
 
 		r.Get("/role", handlers.GetRole)               // comes from orchestrator
@@ -68,8 +66,6 @@ func (r *router) apiRouter() chi.Router {
 
 			r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
 				Get("/", handlers.GetUsers)
-			r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-				Get("/unverified", handlers.GetUnverifiedUsers)
 		})
 	})
 
