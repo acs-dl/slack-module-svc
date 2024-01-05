@@ -21,11 +21,11 @@ func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
 		return request, errors.Wrap(err, "failed to decode url")
 	}
 
-	return request, validateGetRoleRequest(request)
+	return request, request.validate()
 }
 
-func validateGetRoleRequest(request GetRoleRequest) error {
+func (r *GetRoleRequest) validate() error {
 	return validation.Errors{
-		"accessLevel": validation.Validate(request.AccessLevel, validation.Required, validation.In(data.GetRoles()...)),
+		"accessLevel": validation.Validate(r.AccessLevel, validation.Required, validation.In(data.GetRoles()...)),
 	}.Filter()
 }

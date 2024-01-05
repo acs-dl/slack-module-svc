@@ -1,18 +1,13 @@
 package models
 
 import (
-	"strconv"
-
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/resources"
 )
 
 func NewUserInfoModel(user data.User, id int) resources.UserInfo {
 	return resources.UserInfo{
-		Key: resources.Key{
-			ID:   strconv.Itoa(id),
-			Type: resources.USER,
-		},
+		Key: resources.NewKeyInt64(int64(id), resources.USER),
 		Attributes: resources.UserInfoAttributes{
 			Username: user.Username,
 			SlackId:  &user.SlackId,
@@ -26,6 +21,7 @@ func NewUserInfoList(users []data.User, offset uint64) []resources.UserInfo {
 	for i, user := range users {
 		result[i] = NewUserInfoModel(user, i+int(offset))
 	}
+
 	return result
 }
 

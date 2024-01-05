@@ -1,18 +1,13 @@
 package models
 
 import (
-	"strconv"
-
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/resources"
 )
 
 func NewUserPermissionModel(permission data.Permission, counter int) resources.UserPermission {
 	result := resources.UserPermission{
-		Key: resources.Key{
-			ID:   strconv.Itoa(counter),
-			Type: resources.USER_PERMISSION,
-		},
+		Key: resources.NewKeyInt64(int64(counter), resources.USER_PERMISSION),
 		Attributes: resources.UserPermissionAttributes{
 			AccessLevel: resources.AccessLevel{
 				Name:  data.Roles[permission.AccessLevel],
@@ -36,6 +31,7 @@ func NewUserPermissionList(permissions []data.Permission) []resources.UserPermis
 	for i, permission := range permissions {
 		result[i] = NewUserPermissionModel(permission, i)
 	}
+
 	return result
 }
 

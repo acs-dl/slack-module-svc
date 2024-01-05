@@ -24,6 +24,5 @@ func RemoveLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Log(r).Infof("successfully removed link `%s`", request.Data.Attributes.Link)
-	w.WriteHeader(http.StatusAccepted)
-	ape.Render(w, http.StatusAccepted)
+	w.WriteHeader(http.StatusNoContent)
 }

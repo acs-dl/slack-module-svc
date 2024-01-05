@@ -6,8 +6,6 @@ import (
 )
 
 func NewChatModel(chat data.Conversation) resources.Conversation {
-	// id, accessHash := helpers.SubmoduleIdentifiersToString(chat.Id, chat.AccessHash)
-
 	result := resources.Conversation{
 		Key: resources.Key{
 			ID:   chat.Id,

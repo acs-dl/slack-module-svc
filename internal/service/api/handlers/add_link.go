@@ -25,6 +25,5 @@ func AddLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	Log(r).Infof("successfully created link `%s`", request.Data.Attributes.Link)
-	w.WriteHeader(http.StatusAccepted)
-	ape.Render(w, http.StatusAccepted)
+	w.WriteHeader(http.StatusNoContent)
 }
