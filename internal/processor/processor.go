@@ -23,7 +23,7 @@ const (
 type Processor interface {
 	HandleGetUsersAction(msg data.ModulePayload) error
 	HandleVerifyUserAction(msg data.ModulePayload) (string, error)
-	UpsertConversation(chat *slack.Conversation) error
+	UpsertConversations(chat ...slack.Conversation) error
 }
 
 type processor struct {

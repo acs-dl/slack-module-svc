@@ -178,10 +178,8 @@ func (w *worker) processConversations() error {
 		return errors.Wrap(err, "failed to get conversations from Slack API")
 	}
 
-	for _, conversation := range conversations {
-		if err := w.processor.UpsertConversation(&conversation); err != nil {
-			return errors.Wrap(err, "failed to save conversation in db")
-		}
+	if err := w.processor.UpsertConversations(conversations...); err != nil {
+		return errors.Wrap(err, "failed to save conversation in db")
 	}
 
 	return nil
