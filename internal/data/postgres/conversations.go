@@ -7,15 +7,23 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
 )
 
 const (
-	conversationsTableName   = "conversations"
-	conversationsTitleColumn = conversationsTableName + ".title"
-	conversationsIdColumn    = conversationsTableName + ".id"
+	conversationsTitle         = "title"
+	conversationsId            = "id"
+	conversationsMembersAmount = "members_amount"
+
+	conversationsTableName           = "conversations"
+	conversationsTitleColumn         = conversationsTableName + "." + conversationsTitle
+	conversationsIdColumn            = conversationsTableName + "." + conversationsId
+	conversationsMembersAmountColumn = conversationsTableName + "." + conversationsMembersAmount
 )
+
+var conversationColumns = []string{conversationsTitle, conversationsId, conversationsMembersAmount}
 
 type ConversationsQ struct {
 	db            *pgdb.DB
@@ -64,16 +72,16 @@ func (r ConversationsQ) Select() ([]data.Conversation, error) {
 
 func (r ConversationsQ) Upsert(conversations ...data.Conversation) error {
 	updateStmt, args := sq.Update(" ").
-		Set("title", sq.Expr("EXCLUDED.title")).
-		Set("members_amount", sq.Expr("EXCLUDED.members_amount")).
+		Set(conversationsTitle, sq.Expr(fmt.Sprintf("EXCLUDED.%s", conversationsTitle))).
+		Set(conversationsMembersAmount, sq.Expr(fmt.Sprintf("EXCLUDED.%s", conversationsMembersAmount))).
 		MustSql()
 
-	query := sq.Insert(conversationsTableName).Columns("id", "title", "members_amount")
+	query := sq.Insert(conversationsTableName).Columns(conversationColumns...)
 	for _, conversation := range conversations {
-		query = query.Values(conversation.Id, conversation.Title, conversation.MembersAmount)
+		query = query.Values(structs.Values(conversation)...)
 	}
-	query = query.Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
 
+	query = query.Suffix(fmt.Sprintf("ON CONFLICT (%s) DO %s", conversationsId, updateStmt), args...)
 	err := r.db.Exec(query)
 
 	return errors.Wrap(err, "failed to insert conversation")
