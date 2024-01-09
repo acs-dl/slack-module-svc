@@ -147,7 +147,7 @@ func (w *worker) processUnverifiedUsers() ([]data.User, error) {
 
 func (w *worker) processUser(user slackGo.User) (*data.User, error) {
 	w.logger.Info("inserting user into table 'users'")
-	err := w.upsertUsers(user)
+	err := w.upsertUser(user)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert user into table 'users'")
 	}
@@ -185,7 +185,7 @@ func (w *worker) processConversations() error {
 	return nil
 }
 
-func (w *worker) upsertUsers(user slackGo.User) error {
+func (w *worker) upsertUser(user slackGo.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,

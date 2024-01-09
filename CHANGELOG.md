@@ -23,4 +23,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- `/get_input` and `users/unverified` endpoints were deleted
+- `/get_input` and `/users/unverified` endpoints were deleted
