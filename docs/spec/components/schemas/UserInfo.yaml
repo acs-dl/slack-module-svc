@@ -1,0 +1,23 @@
+allOf:
+  - $ref: "#/components/schemas/UserKey"
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - name
+        properties:
+          username:
+            type: string
+            description: username from slack
+            example: "mhrynenko"
+          slack_id:
+            type: string
+            description: id from slack
+            example: U06BHZDSE70
+          name:
+            type: string
+            description: name from slack account
+            example: "Maksym Hrynenko"
