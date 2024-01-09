@@ -13,10 +13,10 @@ import (
 func NewGetUserByIdRequest(r *http.Request) (int64, error) {
 	id := chi.URLParam(r, "id")
 
-	return validateGetUserByIdRequest(id)
+	return validateUserId(id)
 }
 
-func validateGetUserByIdRequest(id string) (int64, error) {
+func validateUserId(id string) (int64, error) {
 	err := validation.Errors{
 		"id": validation.Validate(id, validation.Required),
 	}.Filter()
