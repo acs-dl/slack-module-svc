@@ -1,0 +1,21 @@
+get:
+  tags:
+    - Users
+  summary: Get user by Id
+  operationId: getUserById
+  description: Endpoint for getting user by id from the Slack module.
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                $ref: '#/components/schemas/User'
+    '400':
+      description: Bad request.
+    '500':
+      description: Internal server error.

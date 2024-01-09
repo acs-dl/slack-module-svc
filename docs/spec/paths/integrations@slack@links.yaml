@@ -1,0 +1,49 @@
+post:
+  tags:
+    - Links
+  summary: Create a new link
+  operationId: createLink
+  description: Endpoint for creating a new link in the Slack module.
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/Link'
+  responses:
+    '204':
+      description: No content.
+    '400':
+      description: Bad request.
+    '500':
+      description: Internal server error.
+
+delete:
+  tags:
+    - Links
+  summary: Delete an existing link
+  operationId: deleteLink
+  description: Endpoint for deleting an existing link from the Slack module.
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/Link'
+  responses:
+    '204':
+      description: No content.
+    '400':
+      description: Bad request.
+    '500':
+      description: Internal server error.

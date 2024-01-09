@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Permissions
+  summary: Get users permissions from the Slack module
+  operationId: getPermissions
+  description: Endpoint for getting permissions from the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/linkParam'
+    - $ref: '#/components/parameters/usernameParam'
+    - $ref: '#/components/parameters/pageLimitParam'
+    - $ref: '#/components/parameters/pageNumberParam'
+    - $ref: '#/components/parameters/sortingParam'
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                $ref: '#/components/schemas/UserPermission'
+    '400':
+      description: Bad request.
+    '500':
+      description: Internal server error.

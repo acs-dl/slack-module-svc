@@ -1,0 +1,24 @@
+get:
+  tags:
+    - Users
+  summary: Get users
+  operationId: getUsers
+  description: Endpoint for getting users from the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/usernameParam'
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInfo'
+    '400':
+      description: Bad request.
+    '500':
+      description: Internal server error.
