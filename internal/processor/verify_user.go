@@ -4,19 +4,9 @@ import (
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
-	"github.com/acs-dl/slack-module-svc/internal/helpers"
-	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
-
-func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
-	return validation.Errors{
-		"user_id":  validation.Validate(msg.UserId, validation.Required),
-		"username": validation.Validate(msg.Username, validation.Required),
-	}.Filter()
-}
 
 func (p *processor) parseUserID(userID string) (int64, error) {
 	userId, err := strconv.ParseInt(userID, 10, 64)
@@ -28,10 +18,10 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 	return userId, nil
 }
 
-func (p *processor) updateUserInDB(user *data.User, userID int64) error {
+func (p *processor) upsertUser(user *data.User, userID int64) error {
 	user.Id = &userID
 	if err := p.managerQ.Users.Upsert(*user); err != nil {
-		return errors.Wrap(err, "failed to upsert user in db", logan.F{
+		return errors.Wrap(err, "failed to upsert user", logan.F{
 			"user_id": userID,
 		})
 	}
@@ -74,13 +64,13 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, errors.New("no user was found")
 	}
 
-	if err := p.updateUserInDB(user, userId); err != nil {
+	if err := p.upsertUser(user, userId); err != nil {
 		return data.FAILURE, errors.Wrap(err, "failed to upsert user in db", logan.F{
 			"user_id": userId,
 		})
 	}
 
-	if err := p.sendUpdateUserSlack(msg.RequestId, data.ModulePayload{
+	if err := p.sendUpdateUser(msg.RequestId, data.ModulePayload{
 		RequestId: msg.RequestId,
 		UserId:    msg.UserId,
 		Username:  msg.Username,
@@ -97,18 +87,4 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 
 	p.log.Infof("finish handle message action `%s`", msg.RequestId)
 	return data.SUCCESS, nil
-}
-
-func (p *processor) getUser(slackID string) (*data.User, error) {
-	user, err := helpers.GetUser(p.pqueues.BotPQueue,
-		any(p.client.GetUser),
-		[]any{any(slackID)},
-		pqueue.NormalPriority,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get user from api", logan.F{
-			"slack_id": slackID,
-		})
-	}
-	return user, nil
 }
