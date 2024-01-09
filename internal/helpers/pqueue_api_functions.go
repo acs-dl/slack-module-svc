@@ -3,7 +3,6 @@ package helpers
 import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/acs-dl/slack-module-svc/internal/slack"
 	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -175,7 +174,7 @@ func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (m
 	return billableInfo, nil
 }
 
-func RetrieveChat(chats []slack.Conversation, msg data.ModulePayload) *slack.Conversation {
+func RetrieveChat(chats []data.Conversation, msg data.ModulePayload) *data.Conversation {
 	if len(chats) == 1 {
 		return &chats[0]
 	}
