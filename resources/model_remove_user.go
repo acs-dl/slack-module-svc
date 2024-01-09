@@ -4,7 +4,7 @@
 
 package resources
 
-// action to remove user from repository or group in gitlab
+// action to remove user from slack chat or workspace
 type RemoveUser struct {
 	// action that must be handled in module, must be \"remove_user\"
 	Action string `json:"action"`

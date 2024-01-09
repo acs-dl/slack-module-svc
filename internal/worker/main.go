@@ -33,13 +33,14 @@ type Worker interface {
 }
 
 type worker struct {
-	logger        *logan.Entry
-	processor     processor.Processor
-	linksQ        data.Links
-	permissionsQ  data.Permissions
-	usersQ        data.Users
-	runnerDelay   time.Duration
-	estimatedTime time.Duration
+	logger         *logan.Entry
+	processor      processor.Processor
+	linksQ         data.Links
+	permissionsQ   data.Permissions
+	usersQ         data.Users
+	conversationsQ data.Conversations
+	runnerDelay    time.Duration
+	estimatedTime  time.Duration
 
 	client          slack.Client
 	pqueues         *pqueue.PQueues
@@ -49,13 +50,14 @@ type worker struct {
 
 func New(cfg config.Config, ctx context.Context) Worker {
 	return &worker{
-		logger:        cfg.Log().WithField("runner", ServiceName),
-		processor:     processor.ProcessorInstance(ctx),
-		linksQ:        postgres.NewLinksQ(cfg.DB()),
-		permissionsQ:  postgres.NewPermissionsQ(cfg.DB()),
-		usersQ:        postgres.NewUsersQ(cfg.DB()),
-		runnerDelay:   cfg.Runners().Worker,
-		estimatedTime: time.Duration(0),
+		logger:         cfg.Log().WithField("runner", ServiceName),
+		processor:      processor.ProcessorInstance(ctx),
+		linksQ:         postgres.NewLinksQ(cfg.DB()),
+		permissionsQ:   postgres.NewPermissionsQ(cfg.DB()),
+		usersQ:         postgres.NewUsersQ(cfg.DB()),
+		conversationsQ: postgres.NewConversationsQ(cfg.DB()),
+		runnerDelay:    cfg.Runners().Worker,
+		estimatedTime:  time.Duration(0),
 
 		client:          slack.New(cfg),
 		pqueues:         pqueue.PQueuesInstance(ctx),
@@ -81,6 +83,11 @@ func (w *worker) Run(ctx context.Context) error {
 func (w *worker) ProcessPermissions(_ context.Context) error {
 	w.logger.Info("started processing permissions")
 	startTime := time.Now()
+
+	err := w.processConversations()
+	if err != nil {
+		return errors.Wrap(err, "failed to process conversations")
+	}
 
 	usersToUnverified, err := w.processUnverifiedUsers()
 	if err != nil {
@@ -127,7 +134,7 @@ func (w *worker) processUnverifiedUsers() ([]data.User, error) {
 		}
 
 		usersToUnverified = append(usersToUnverified, *userData)
-		
+
 		w.logger.Info("inserting permissions into table 'permissions'")
 		err = w.upsertPermissions(user, workspaceName, billableInfo)
 		if err != nil {
@@ -142,7 +149,7 @@ func (w *worker) processUnverifiedUsers() ([]data.User, error) {
 
 func (w *worker) processUser(user slackGo.User) (*data.User, error) {
 	w.logger.Info("inserting user into table 'users'")
-	err := w.upsertUsers(user)
+	err := w.upsertUser(user)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert user into table 'users'")
 	}
@@ -166,7 +173,21 @@ func (w *worker) processUser(user slackGo.User) (*data.User, error) {
 	}, nil
 }
 
-func (w *worker) upsertUsers(user slackGo.User) error {
+func (w *worker) processConversations() error {
+	w.logger.Info("getting conversations from api")
+	conversations, err := w.getConversations()
+	if err != nil {
+		return errors.Wrap(err, "failed to get conversations from Slack API")
+	}
+
+	if err := w.conversationsQ.Upsert(conversations...); err != nil {
+		return errors.Wrap(err, "failed to save conversation in db")
+	}
+
+	return nil
+}
+
+func (w *worker) upsertUser(user slackGo.User) error {
 	err := w.usersQ.Upsert(data.User{
 		Username:  &user.Name,
 		Realname:  &user.RealName,

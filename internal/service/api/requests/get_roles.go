@@ -3,18 +3,18 @@ package requests
 import (
 	"net/http"
 
-	"github.com/acs-dl/slack-module-svc/internal/data"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"gitlab.com/distributed_lab/urlval"
 )
 
-type GetRoleRequest struct {
-	AccessLevel *string `filter:"accessLevel"`
+type GetRolesRequest struct {
+	Link     *string `filter:"link"`
+	Username *string `filter:"username"`
 }
 
-func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
-	var request GetRoleRequest
+func NewGetRolesRequest(r *http.Request) (GetRolesRequest, error) {
+	var request GetRolesRequest
 
 	err := urlval.Decode(r.URL.Query(), &request)
 	if err != nil {
@@ -24,8 +24,9 @@ func NewGetRoleRequest(r *http.Request) (GetRoleRequest, error) {
 	return request, request.validate()
 }
 
-func (r *GetRoleRequest) validate() error {
+func (r *GetRolesRequest) validate() error {
 	return validation.Errors{
-		"accessLevel": validation.Validate(r.AccessLevel, validation.Required, validation.In(data.GetRoles()...)),
+		"link":     validation.Validate(&r.Link, validation.Required),
+		"username": validation.Validate(&r.Username, validation.Required),
 	}.Filter()
 }

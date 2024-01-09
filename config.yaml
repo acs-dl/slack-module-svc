@@ -26,6 +26,11 @@ rate_limit:
 listener:
   addr: :9000
 
+jwt:
+  secret: "SuPeR SeCrEt PhRaSe"
+  refresh_life: 6h
+  access_life: 10m5s
+
 registrator:
   outer_url: "http://localhost:80/integrations/orchestrator/modules" #endpoint to register MODULE
   inner_url: "http://localhost:9000/integrations/slack" #endpoint to MODULE itself

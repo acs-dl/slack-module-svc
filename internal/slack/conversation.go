@@ -3,13 +3,16 @@ package slack
 import (
 	"time"
 
+	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversation(title string) ([]Conversation, error) {
-	chats, err := s.findConversationByTitle(title)
+func (s *client) GetConversationsByLink(title string) ([]data.Conversation, error) {
+	chats, err := s.getConversations(func(ch slack.Channel) bool {
+		return ch.Name == title
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{
 			"chat_title": title,
@@ -19,15 +22,13 @@ func (s *client) GetConversation(title string) ([]Conversation, error) {
 	return chats, nil
 }
 
-func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
-
-	//TODO: maybe use pq?
-	var allConversations []Conversation
-	limit := 20  // Maximum number of channels returned in one request
-	cursor := "" // Used for pagination
+func (s *client) getConversations(predicate func(slack.Channel) bool) ([]data.Conversation, error) {
+	// TODO: consider creating a wrapper to use a pqueue
+	var allConversations []data.Conversation
+	limit := 20
+	cursor := ""
 
 	for {
-		// Getting the list of channels with the current cursor
 		params := slack.GetConversationsParameters{
 			Limit:  limit,
 			Cursor: cursor,
@@ -38,10 +39,9 @@ func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
 			return nil, err
 		}
 
-		// Filter channels by name and add to the result
 		for _, channel := range channels {
-			if channel.Name == title {
-				allConversations = append(allConversations, Conversation{
+			if predicate(channel) {
+				allConversations = append(allConversations, data.Conversation{
 					Title:         channel.Name,
 					Id:            channel.ID,
 					MembersAmount: int64(channel.NumMembers),
@@ -49,12 +49,10 @@ func (s *client) findConversationByTitle(title string) ([]Conversation, error) {
 			}
 		}
 
-		// Check if there are more channels to be processed
 		if nextCursor == "" {
 			break
 		}
 
-		// Update the cursor for the next request
 		cursor = nextCursor
 
 		// Waiting to avoid exceeding the limit of requests per minute

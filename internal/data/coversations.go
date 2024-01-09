@@ -3,10 +3,11 @@ package data
 type Conversations interface {
 	New() Conversations
 
-	Upsert(chat Conversation) error
+	Upsert(conversations ...Conversation) error
 	Delete() error
 	Get() (*Conversation, error)
 	Select() ([]Conversation, error)
+	SearchBy(search string) Conversations
 
 	FilterByTitles(titles ...string) Conversations
 	FilterByIds(ids ...string) Conversations

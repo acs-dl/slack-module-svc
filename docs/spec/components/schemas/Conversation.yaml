@@ -12,8 +12,7 @@ allOf:
           - id
         properties:
           submodule_id:
-            type: integer
-            format: int64
+            type: string
             description: slack channel id
             example: "666"
           title:

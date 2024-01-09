@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
@@ -11,10 +13,17 @@ import (
 )
 
 const (
-	conversationsTableName   = "conversations"
-	conversationsTitleColumn = conversationsTableName + ".title"
-	conversationsIdColumn    = conversationsTableName + ".id"
+	conversationsTitle         = "title"
+	conversationsId            = "id"
+	conversationsMembersAmount = "members_amount"
+
+	conversationsTableName           = "conversations"
+	conversationsTitleColumn         = conversationsTableName + "." + conversationsTitle
+	conversationsIdColumn            = conversationsTableName + "." + conversationsId
+	conversationsMembersAmountColumn = conversationsTableName + "." + conversationsMembersAmount
 )
+
+var conversationColumns = []string{conversationsTitle, conversationsId, conversationsMembersAmount}
 
 type ConversationsQ struct {
 	db            *pgdb.DB
@@ -61,17 +70,20 @@ func (r ConversationsQ) Select() ([]data.Conversation, error) {
 	return result, errors.Wrap(err, "failed to select conversations")
 }
 
-func (r ConversationsQ) Upsert(conversation data.Conversation) error {
+func (r ConversationsQ) Upsert(conversations ...data.Conversation) error {
 	updateStmt, args := sq.Update(" ").
-		Set("title", conversation.Title).
-		Set("members_amount", conversation.MembersAmount).
+		Set(conversationsTitle, sq.Expr(fmt.Sprintf("EXCLUDED.%s", conversationsTitle))).
+		Set(conversationsMembersAmount, sq.Expr(fmt.Sprintf("EXCLUDED.%s", conversationsMembersAmount))).
 		MustSql()
 
-	query := sq.Insert(conversationsTableName).SetMap(structs.Map(conversation)).
-		Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
+	query := sq.Insert(conversationsTableName).Columns(conversationColumns...)
+	for _, conversation := range conversations {
+		query = query.Values(structs.Values(conversation)...)
+	}
 
+	query = query.Suffix(fmt.Sprintf("ON CONFLICT (%s) DO %s", conversationsId, updateStmt), args...)
 	err := r.db.Exec(query)
-	
+
 	return errors.Wrap(err, "failed to insert conversation")
 }
 
@@ -88,6 +100,15 @@ func (r ConversationsQ) Delete() error {
 	}
 
 	return nil
+}
+
+func (q ConversationsQ) SearchBy(search string) data.Conversations {
+	search = strings.Replace(search, " ", "%", -1)
+	search = fmt.Sprint("%", search, "%")
+
+	q.selectBuilder = q.selectBuilder.Where(sq.ILike{conversationsTitleColumn: search})
+
+	return q
 }
 
 func (r ConversationsQ) FilterByTitles(titles ...string) data.Conversations {

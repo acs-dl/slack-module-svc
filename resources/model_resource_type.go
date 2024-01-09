@@ -10,7 +10,6 @@ type ResourceType string
 const (
 	CONVERSATIONS   ResourceType = "conversations"
 	ESTIMATED_TIME  ResourceType = "estimated_time"
-	INPUTS          ResourceType = "inputs"
 	LINKS           ResourceType = "links"
 	MODULES         ResourceType = "modules"
 	REQUESTS        ResourceType = "requests"

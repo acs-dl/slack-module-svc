@@ -16,8 +16,7 @@ allOf:
             description: username from slack
             example: "velykodnyi"
           module_id:
-            type: integer
-            format: int64
+            type: string
             description: user id from module
             example: 8421495
           user_id:
@@ -41,3 +40,7 @@ allOf:
             type: object
             description: level of success for workspace
             $ref: "#/components/schemas/AccessLevel"
+          bill:
+            type: boolean
+            description: is user billable
+            example: 'true'

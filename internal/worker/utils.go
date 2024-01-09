@@ -4,7 +4,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -27,7 +27,7 @@ func (w *worker) getUserFromDbBySlackId(slackId string) (*data.User, error) {
 	return user, nil
 }
 
-func (w *worker) getUsers() ([]slack.User, error) {
+func (w *worker) getUsers() ([]slackGo.User, error) {
 	return helpers.GetUsers(
 		w.pqueues.BotPQueue,
 		any(w.client.GetUsers),
@@ -53,11 +53,19 @@ func (w *worker) getWorkspaceName() (string, error) {
 	)
 }
 
-func (w *worker) getConversationsForUser(userId string) ([]slack.Channel, error) {
+func (w *worker) getConversationsForUser(userId string) ([]slackGo.Channel, error) {
 	return helpers.GetConversationsForUser(
 		w.pqueues.BotPQueue,
 		any(w.client.GetConversationsForUser),
 		[]interface{}{userId},
+		pqueue.LowPriority,
+	)
+}
+
+func (w *worker) getConversations() ([]data.Conversation, error) {
+	return helpers.GetConversations(
+		w.pqueues.BotPQueue,
+		any(w.client.GetConversations),
 		pqueue.LowPriority,
 	)
 }

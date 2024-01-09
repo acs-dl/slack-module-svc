@@ -19,6 +19,7 @@ const (
 	permissionsRequestIdColumn   = permissionsTableName + ".request_id"
 	permissionsWorkSpaceColumn   = permissionsTableName + ".workspace"
 	permissionsSlackIdColumn     = permissionsTableName + ".slack_id"
+	permissionsUsernameColumn    = permissionsTableName + ".username"
 	permissionsLinkColumn        = permissionsTableName + ".link"
 	permissonBillColumn          = permissionsTableName + ".bill"
 	permissionsSubmoduleIdColumn = permissionsTableName + ".submodule_id"
@@ -53,6 +54,7 @@ var permissionsColumns = []string{
 	permissionsCreatedAtColumn,
 	permissionsUpdatedAtColumn,
 	permissionsSubmoduleIdColumn,
+	permissionsUsernameColumn,
 }
 
 func NewPermissionsQ(db *pgdb.DB) data.Permissions {
@@ -124,6 +126,12 @@ func (q PermissionsQ) Delete() error {
 
 func (q PermissionsQ) FilterBySlackIds(slackIds ...string) data.Permissions {
 	equalSlackIds := sq.Eq{permissionsSlackIdColumn: slackIds}
+
+	return q.applyFilter(equalSlackIds)
+}
+
+func (q PermissionsQ) FilterByUsernames(usernames ...string) data.Permissions {
+	equalSlackIds := sq.Eq{permissionsUsernameColumn: usernames}
 
 	return q.applyFilter(equalSlackIds)
 }

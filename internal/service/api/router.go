@@ -6,16 +6,15 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/data/postgres"
 	"github.com/acs-dl/slack-module-svc/internal/service/api/handlers"
+	"github.com/acs-dl/slack-module-svc/internal/service/api/middleware"
 	"github.com/go-chi/chi"
 	"gitlab.com/distributed_lab/ape"
 )
 
 func (r *router) apiRouter() chi.Router {
 	router := chi.NewRouter()
-
 	logger := r.cfg.Log().WithField("service", fmt.Sprintf("%s-api", data.ModuleName))
-
-	// secret := r.cfg.JwtParams().Secret
+	secret := r.cfg.JwtParams().Secret
 
 	router.Use(
 		ape.RecoverMiddleware(logger),
@@ -36,41 +35,31 @@ func (r *router) apiRouter() chi.Router {
 	)
 
 	router.Route("/integrations/slack", func(r chi.Router) {
-		// r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-		// 	Get("/get_input", handlers.GetInputs)
-		// r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-		// 	Get("/get_available_roles", handlers.GetRoles)
-
 		r.Get("/role", handlers.GetRole)               // comes from orchestrator
 		r.Get("/roles", handlers.GetRolesMap)          // comes from orchestrator
 		r.Get("/user_roles", handlers.GetUserRolesMap) // comes from orchestrator
 
-		// r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-		// 	Get("/submodule", handlers.CheckSubmodule)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.IsAuthenticated(secret))
 
-		// r.Route("/links", func(r chi.Router) {
-		// 	r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner]}...)).
-		// 		Post("/", handlers.AddLink)
-		// 	r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner]}...)).
-		// 		Delete("/", handlers.RemoveLink)
-		// })
+			r.Get("/get_available_roles", handlers.GetRoles)
+			r.Get("/submodule", handlers.CheckSubmodule)
+			r.Get("/permissions", handlers.GetPermissions)
 
-		// r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-		// 	Route("/estimate_refresh", func(r chi.Router) {
-		// 		r.Post("/submodule", handlers.GetEstimatedRefreshSubmodule)
-		// 		r.Post("/module", handlers.GetEstimatedRefreshModule)
-		// 	})
+			r.Route("/estimate_refresh", func(r chi.Router) {
+				r.Post("/submodule", handlers.GetEstimatedRefreshSubmodule)
+				r.Post("/module", handlers.GetEstimatedRefreshModule)
+			})
 
-		// r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-		// 	Get("/permissions", handlers.GetPermissions)
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/{id}", handlers.GetUserById) // comes from orchestrator
+				r.Get("/", handlers.GetUsers)
+			})
+		})
 
-		r.Route("/users", func(r chi.Router) {
-			r.Get("/{id}", handlers.GetUserById) // comes from orchestrator
-
-			// 	r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-			// 		Get("/", handlers.GetUsers)
-			// 	r.With(auth.Jwt(secret, data.ModuleName, []string{data.Roles[data.Admin], data.Roles[data.Owner], data.Roles[data.Member]}...)).
-			// 		Get("/unverified", handlers.GetUnverifiedUsers)
+		r.With(middleware.IsAdmin(secret)).Route("/links", func(r chi.Router) {
+			r.Post("/", handlers.AddLink)
+			r.Delete("/", handlers.RemoveLink)
 		})
 	})
 

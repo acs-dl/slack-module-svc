@@ -14,20 +14,15 @@ type Client interface {
 	GetConversationsForUser(userId string) ([]slack.Channel, error)
 	GetBillableInfoForUser(userId string) (bool, error)
 	GetBillableInfo() (map[string]bool, error)
-	GetConversation(title string) ([]Conversation, error)
-	GetConversationUsers(conversation Conversation) ([]data.User, error)
+	GetConversationsByLink(title string) ([]data.Conversation, error)
+	GetConversations() ([]data.Conversation, error)
+	GetConversationUsers(conversation data.Conversation) ([]data.User, error)
 }
 
 type client struct {
 	log        *logan.Entry
 	userClient *slack.Client
 	botClient  *slack.Client
-}
-
-type Conversation struct {
-	Title         string
-	Id            string
-	MembersAmount int64
 }
 
 func New(cfg config.Config) Client {
