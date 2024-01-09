@@ -79,7 +79,7 @@ func (p *processor) buildMessage(uuid string, payload []byte) *message.Message {
 	}
 }
 
-func (p *processor) sendUpdateUserSlack(uuid string, msg data.ModulePayload) error {
+func (p *processor) sendUpdateUser(uuid string, msg data.ModulePayload) error {
 	marshaledPayload, err := json.Marshal(msg)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal update slack info")
