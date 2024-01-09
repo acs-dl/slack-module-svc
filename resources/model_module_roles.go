@@ -6,7 +6,7 @@ package resources
 
 type ModuleRoles struct {
 	Key
-	Attributes ModuleRolesAttributes `json:"attributes"`
+	Attributes map[string]interface{} `json:"attributes"`
 }
 type ModuleRolesResponse struct {
 	Data     ModuleRoles `json:"data"`
