@@ -33,13 +33,14 @@ type Worker interface {
 }
 
 type worker struct {
-	logger        *logan.Entry
-	processor     processor.Processor
-	linksQ        data.Links
-	permissionsQ  data.Permissions
-	usersQ        data.Users
-	runnerDelay   time.Duration
-	estimatedTime time.Duration
+	logger         *logan.Entry
+	processor      processor.Processor
+	linksQ         data.Links
+	permissionsQ   data.Permissions
+	usersQ         data.Users
+	conversationsQ data.Conversations
+	runnerDelay    time.Duration
+	estimatedTime  time.Duration
 
 	client          slack.Client
 	pqueues         *pqueue.PQueues
@@ -49,13 +50,14 @@ type worker struct {
 
 func New(cfg config.Config, ctx context.Context) Worker {
 	return &worker{
-		logger:        cfg.Log().WithField("runner", ServiceName),
-		processor:     processor.ProcessorInstance(ctx),
-		linksQ:        postgres.NewLinksQ(cfg.DB()),
-		permissionsQ:  postgres.NewPermissionsQ(cfg.DB()),
-		usersQ:        postgres.NewUsersQ(cfg.DB()),
-		runnerDelay:   cfg.Runners().Worker,
-		estimatedTime: time.Duration(0),
+		logger:         cfg.Log().WithField("runner", ServiceName),
+		processor:      processor.ProcessorInstance(ctx),
+		linksQ:         postgres.NewLinksQ(cfg.DB()),
+		permissionsQ:   postgres.NewPermissionsQ(cfg.DB()),
+		usersQ:         postgres.NewUsersQ(cfg.DB()),
+		conversationsQ: postgres.NewConversationsQ(cfg.DB()),
+		runnerDelay:    cfg.Runners().Worker,
+		estimatedTime:  time.Duration(0),
 
 		client:          slack.New(cfg),
 		pqueues:         pqueue.PQueuesInstance(ctx),
@@ -178,7 +180,7 @@ func (w *worker) processConversations() error {
 		return errors.Wrap(err, "failed to get conversations from Slack API")
 	}
 
-	if err := w.processor.UpsertConversations(conversations...); err != nil {
+	if err := w.conversationsQ.Upsert(conversations...); err != nil {
 		return errors.Wrap(err, "failed to save conversation in db")
 	}
 

@@ -4,7 +4,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/acs-dl/slack-module-svc/internal/slack"
 	slackGo "github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -63,7 +62,7 @@ func (w *worker) getConversationsForUser(userId string) ([]slackGo.Channel, erro
 	)
 }
 
-func (w *worker) getConversations() ([]slack.Conversation, error) {
+func (w *worker) getConversations() ([]data.Conversation, error) {
 	return helpers.GetConversations(
 		w.pqueues.BotPQueue,
 		any(w.client.GetConversations),

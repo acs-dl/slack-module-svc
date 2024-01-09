@@ -3,12 +3,13 @@ package slack
 import (
 	"time"
 
+	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversationsByLink(title string) ([]Conversation, error) {
+func (s *client) GetConversationsByLink(title string) ([]data.Conversation, error) {
 	chats, err := s.getConversations(func(ch slack.Channel) bool {
 		return ch.Name == title
 	})
@@ -21,9 +22,9 @@ func (s *client) GetConversationsByLink(title string) ([]Conversation, error) {
 	return chats, nil
 }
 
-func (s *client) getConversations(predicate func(slack.Channel) bool) ([]Conversation, error) {
+func (s *client) getConversations(predicate func(slack.Channel) bool) ([]data.Conversation, error) {
 	// TODO: consider creating a wrapper to use a pqueue
-	var allConversations []Conversation
+	var allConversations []data.Conversation
 	limit := 20
 	cursor := ""
 
@@ -40,7 +41,7 @@ func (s *client) getConversations(predicate func(slack.Channel) bool) ([]Convers
 
 		for _, channel := range channels {
 			if predicate(channel) {
-				allConversations = append(allConversations, Conversation{
+				allConversations = append(allConversations, data.Conversation{
 					Title:         channel.Name,
 					Id:            channel.ID,
 					MembersAmount: int64(channel.NumMembers),

@@ -8,7 +8,7 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func GetConversationsByLink(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slack.Conversation, error) {
+func GetConversationsByLink(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]data.Conversation, error) {
 	item, err := AddFunctionInPQueue(queue, function, args, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -17,7 +17,7 @@ func GetConversationsByLink(queue *pqueue.PriorityQueue, function any, args []an
 	return processConversationItem(item)
 }
 
-func GetConversations(queue *pqueue.PriorityQueue, function any, priority int) ([]slack.Conversation, error) {
+func GetConversations(queue *pqueue.PriorityQueue, function any, priority int) ([]data.Conversation, error) {
 	item, err := AddFunctionInPQueue(queue, function, []any{}, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -26,13 +26,13 @@ func GetConversations(queue *pqueue.PriorityQueue, function any, priority int) (
 	return processConversationItem(item)
 }
 
-func processConversationItem(item *pqueue.QueueItem) ([]slack.Conversation, error) {
+func processConversationItem(item *pqueue.QueueItem) ([]data.Conversation, error) {
 	err := item.Response.Error
 	if err != nil {
 		return nil, errors.Wrap(err, "some error while getting chats from api")
 	}
 
-	conversations, ok := item.Response.Value.([]slack.Conversation)
+	conversations, ok := item.Response.Value.([]data.Conversation)
 	if !ok {
 		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
 	}

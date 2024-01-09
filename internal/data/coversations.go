@@ -3,7 +3,7 @@ package data
 type Conversations interface {
 	New() Conversations
 
-	Upsert(chat Conversation) error
+	Upsert(conversations ...Conversation) error
 	Delete() error
 	Get() (*Conversation, error)
 	Select() ([]Conversation, error)

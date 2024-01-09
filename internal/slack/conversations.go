@@ -1,11 +1,12 @@
 package slack
 
 import (
+	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversations() ([]Conversation, error) {
+func (s *client) GetConversations() ([]data.Conversation, error) {
 	chats, err := s.getConversations(func(_ slack.Channel) bool {
 		return true
 	})

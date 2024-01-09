@@ -7,7 +7,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
-	"github.com/fatih/structs"
 	"github.com/pkg/errors"
 	"gitlab.com/distributed_lab/kit/pgdb"
 )
@@ -63,14 +62,17 @@ func (r ConversationsQ) Select() ([]data.Conversation, error) {
 	return result, errors.Wrap(err, "failed to select conversations")
 }
 
-func (r ConversationsQ) Upsert(conversation data.Conversation) error {
+func (r ConversationsQ) Upsert(conversations ...data.Conversation) error {
 	updateStmt, args := sq.Update(" ").
-		Set("title", conversation.Title).
-		Set("members_amount", conversation.MembersAmount).
+		Set("title", sq.Expr("EXCLUDED.title")).
+		Set("members_amount", sq.Expr("EXCLUDED.members_amount")).
 		MustSql()
 
-	query := sq.Insert(conversationsTableName).SetMap(structs.Map(conversation)).
-		Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
+	query := sq.Insert(conversationsTableName).Columns("id", "title", "members_amount")
+	for _, conversation := range conversations {
+		query = query.Values(conversation.Id, conversation.Title, conversation.MembersAmount)
+	}
+	query = query.Suffix("ON CONFLICT (id) DO "+updateStmt, args...)
 
 	err := r.db.Exec(query)
 

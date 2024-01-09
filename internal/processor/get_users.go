@@ -6,7 +6,6 @@ import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
-	"github.com/acs-dl/slack-module-svc/internal/slack"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -37,8 +36,13 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 		return errors.Wrap(err, "failed to get billable info from Slack API")
 	}
 
+	workspaceName, err := p.getWorkspaceName()
+	if err != nil {
+		return errors.Wrap(err, "failed to get workspaceName from API")
+	}
+
 	for _, chat := range chats {
-		if err := p.UpsertConversations(chat); err != nil {
+		if err := p.managerQ.Conversations.Upsert(chat); err != nil {
 			return errors.Wrap(err, "failed to handle db chat flow")
 		}
 
@@ -50,11 +54,6 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 		if len(users) == 0 {
 			p.log.Warnf("no user was found for message action with id `%s`", msg.RequestId)
 			continue
-		}
-
-		workspaceName, err := p.getWorkspaceName()
-		if err != nil {
-			return errors.Wrap(err, "failed to get workspaceName from API")
 		}
 
 		usersToUnverified := make([]data.User, 0)
@@ -75,7 +74,7 @@ func (p *processor) HandleGetUsersAction(msg data.ModulePayload) error {
 	return nil
 }
 
-func (p *processor) getConversationsByLink(link string) ([]slack.Conversation, error) {
+func (p *processor) getConversationsByLink(link string) ([]data.Conversation, error) {
 	return helpers.GetConversationsByLink(p.pqueues.BotPQueue, any(p.client.GetConversationsByLink), []any{any(link)}, pqueue.LowPriority)
 }
 
@@ -83,7 +82,7 @@ func (p *processor) getBillableInfo() (map[string]bool, error) {
 	return helpers.GetBillableInfo(p.pqueues.UserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
-func (p *processor) getUsersForChat(chat slack.Conversation) ([]data.User, error) {
+func (p *processor) getUsersForChat(chat data.Conversation) ([]data.User, error) {
 	users, err := helpers.Users(p.pqueues.BotPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for chat", logan.F{
@@ -108,7 +107,7 @@ func (p *processor) processUser(
 	user data.User,
 	msg *data.ModulePayload,
 	workspaceName *string,
-	chat *slack.Conversation,
+	chat *data.Conversation,
 	usersToUnverified *[]data.User,
 	billableInfo map[string]bool,
 ) error {
@@ -155,22 +154,4 @@ func (p *processor) processUser(
 
 		return nil
 	})
-}
-
-func (p *processor) UpsertConversations(chats ...slack.Conversation) error {
-	for _, chat := range chats {
-		err := p.managerQ.Conversations.Upsert(data.Conversation{
-			Title:         chat.Title,
-			Id:            chat.Id,
-			MembersAmount: chat.MembersAmount,
-		})
-		if err != nil {
-			return errors.Wrap(err, "failed to upsert chat", logan.F{
-				"chat_id":    chat.Id,
-				"chat_title": chat.Title,
-			})
-		}
-	}
-
-	return nil
 }
