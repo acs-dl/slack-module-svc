@@ -1,11 +1,12 @@
+parameters:
+  - $ref: '#/components/parameters/authParam'
+
 post:
   tags:
     - Links
   summary: Create a new link
   operationId: createLink
   description: Endpoint for creating a new link in the Slack module.
-  parameters:
-    - $ref: '#/components/parameters/authParam'
   requestBody:
     content:
       application/json:
@@ -22,6 +23,8 @@ post:
       description: No content
     '400':
       description: Bad request
+    '401':
+      description: Unauthorized
     '500':
       description: Internal server error
 
@@ -47,5 +50,7 @@ delete:
       description: No content
     '400':
       description: Bad request
+    '401':
+      description: Unauthorized
     '500':
       description: Internal server error

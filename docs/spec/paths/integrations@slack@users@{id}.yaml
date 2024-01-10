@@ -26,5 +26,7 @@ get:
                   $ref: '#/components/schemas/User'
     '400':
       description: Bad request
+    '401':
+      description: Unauthorized
     '500':
       description: Internal server error
