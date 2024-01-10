@@ -8,7 +8,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/acs-dl/slack-module-svc/internal/data"
-	"github.com/acs-dl/slack-module-svc/internal/helpers"
 	"github.com/fatih/structs"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -170,11 +169,11 @@ func (q PermissionsQ) Page(pageParams pgdb.OffsetPageParams) data.Permissions {
 }
 
 func (q PermissionsQ) WithUsers() data.Permissions {
-	q.selectBuilder = sq.Select().Columns(helpers.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...).
+	q.selectBuilder = sq.Select().Columns(data.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...).
 		From(permissionsTableName).
 		LeftJoin(usersTableName + " ON " + usersSlackIdColumn + " = " + permissionsSlackIdColumn).
 		Where(sq.NotEq{permissionsRequestIdColumn: nil}).
-		GroupBy(helpers.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...)
+		GroupBy(data.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...)
 
 	return q
 }

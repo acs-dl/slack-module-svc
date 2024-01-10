@@ -2,16 +2,15 @@ package slack
 
 import (
 	"github.com/acs-dl/slack-module-svc/internal/data"
-	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (c *client) GetConversationsByLink(title string) ([]data.Conversation, error) {
+func (c *client) GetConversationsByLink(title string, priority int) ([]data.Conversation, error) {
 	conversations, err := c.getConversations(func(ch slack.Channel) bool {
 		return ch.Name == title
-	})
+	}, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{
 			"conversation_title": title,
@@ -21,7 +20,7 @@ func (c *client) GetConversationsByLink(title string) ([]data.Conversation, erro
 	return conversations, nil
 }
 
-func (c *client) getConversationsWrapper(params slack.GetConversationsParameters) ([]slack.Channel, string, error) {
+func (c *client) getConversationsWrapper(params slack.GetConversationsParameters, priority int) ([]slack.Channel, string, error) {
 	type response struct {
 		conversation []slack.Channel
 		nextCursor   string
@@ -36,7 +35,7 @@ func (c *client) getConversationsWrapper(params slack.GetConversationsParameters
 		c.pqueues.BotPQueue,
 		wrapperFunc,
 		[]any{},
-		pqueue.LowPriority,
+		priority,
 	)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "failed to add function in pqueue")
@@ -57,7 +56,7 @@ func (c *client) getConversationsWrapper(params slack.GetConversationsParameters
 	return result.conversation, result.nextCursor, err
 }
 
-func (c *client) getConversations(predicate func(slack.Channel) bool) ([]data.Conversation, error) {
+func (c *client) getConversations(predicate func(slack.Channel) bool, priority int) ([]data.Conversation, error) {
 	var allConversations []data.Conversation
 	limit := 20
 	cursor := ""
@@ -68,7 +67,7 @@ func (c *client) getConversations(predicate func(slack.Channel) bool) ([]data.Co
 			Cursor: cursor,
 		}
 
-		conversations, nextCursor, err := c.getConversationsWrapper(params)
+		conversations, nextCursor, err := c.getConversationsWrapper(params, priority)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get conversations")
 		}

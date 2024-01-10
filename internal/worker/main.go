@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
@@ -68,8 +69,8 @@ func (w *worker) Run(ctx context.Context) error {
 func (w *worker) ProcessPermissions(_ context.Context) error {
 	w.logger.Info("started processing permissions for all conversations")
 	startTime := time.Now()
-
-	conversations, err := w.client.GetConversations()
+	fmt.Println("Here")
+	conversations, err := w.client.GetConversations(pqueue.LowPriority)
 	if err != nil {
 		return errors.Wrap(err, "failed to get all conversations from slack api")
 	}
@@ -107,7 +108,7 @@ func (w *worker) RefreshSubmodules(msg data.ModulePayload) (string, error) {
 
 	var conversations []data.Conversation
 	for _, link := range msg.Links {
-		conversation, err := w.getConversationsByLink(link)
+		conversation, err := w.client.GetConversationsByLink(link, pqueue.LowPriority)
 		if err != nil {
 			return data.FAILURE, errors.Wrap(err, "failed to get conversation by link", logan.F{
 				"link": link,
