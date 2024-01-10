@@ -10,9 +10,10 @@ get:
     - $ref: '#/components/parameters/pageLimitParam'
     - $ref: '#/components/parameters/pageNumberParam'
     - $ref: '#/components/parameters/sortingParam'
+    - $ref: '#/components/parameters/authParam'
   responses:
     '200':
-      description: Success.
+      description: Success
       content:
         application/json:
           schema:
@@ -20,8 +21,9 @@ get:
             properties:
               data:
                 type: array
-                $ref: '#/components/schemas/UserPermission'
+                items:
+                  $ref: '#/components/schemas/UserPermission'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

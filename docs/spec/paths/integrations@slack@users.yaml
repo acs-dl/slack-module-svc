@@ -6,9 +6,10 @@ get:
   description: Endpoint for getting users from the Slack module.
   parameters:
     - $ref: '#/components/parameters/usernameParam'
+    - $ref: '#/components/parameters/authParam'
   responses:
     '200':
-      description: Success.
+      description: Success
       content:
         application/json:
           schema:
@@ -19,6 +20,6 @@ get:
                 items:
                   $ref: '#/components/schemas/UserInfo'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

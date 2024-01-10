@@ -6,6 +6,7 @@ get:
   description: Endpoint for checking if a submodule is present in the slack module.
   parameters:
     - $ref: '#/components/parameters/linkParam'
+    - $ref: '#/components/parameters/authParam'
   responses:
     '200':
       description: Success
@@ -18,6 +19,6 @@ get:
                 type: object
                 $ref: '#/components/schemas/Link'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

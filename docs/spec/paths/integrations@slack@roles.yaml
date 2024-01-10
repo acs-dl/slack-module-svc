@@ -1,7 +1,7 @@
 get:
   tags:
     - Roles
-  summary: Get roles
+  summary: Get all roles from the module
   operationId: getRoles
   description: Endpoint for getting all available roles (permission to set) from slack module to pass them in FE.
   responses:
@@ -16,6 +16,6 @@ get:
                 type: object
                 $ref: '#/components/schemas/ModuleRoles'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

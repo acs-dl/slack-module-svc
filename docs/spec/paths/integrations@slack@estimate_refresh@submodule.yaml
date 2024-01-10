@@ -4,6 +4,8 @@ post:
   summary: Get estimated time it takes to refresh certain submodules of the Slack module
   operationId: getEstimatedTimeSubmodules
   description: Endpoint for getting the estimated time to refresh certain submodules of the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/authParam'
   requestBody:
     content:
       application/json:
@@ -27,6 +29,6 @@ post:
                 type: object
                 $ref: '#/components/schemas/EstimatedTime'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

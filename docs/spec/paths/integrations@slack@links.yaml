@@ -4,6 +4,8 @@ post:
   summary: Create a new link
   operationId: createLink
   description: Endpoint for creating a new link in the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/authParam'
   requestBody:
     content:
       application/json:
@@ -17,11 +19,11 @@ post:
               $ref: '#/components/schemas/Link'
   responses:
     '204':
-      description: No content.
+      description: No content
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error
 
 delete:
   tags:
@@ -42,8 +44,8 @@ delete:
               $ref: '#/components/schemas/Link'
   responses:
     '204':
-      description: No content.
+      description: No content
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

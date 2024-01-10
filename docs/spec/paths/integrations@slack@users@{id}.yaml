@@ -4,9 +4,17 @@ get:
   summary: Get user by Id
   operationId: getUserById
   description: Endpoint for getting user by id from the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/authParam'
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
   responses:
     '200':
-      description: Success.
+      description: Success
       content:
         application/json:
           schema:
@@ -14,8 +22,9 @@ get:
             properties:
               data:
                 type: array
-                $ref: '#/components/schemas/User'
+                items:
+                  $ref: '#/components/schemas/User'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

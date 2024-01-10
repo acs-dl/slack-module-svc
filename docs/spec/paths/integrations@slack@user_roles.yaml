@@ -1,8 +1,8 @@
 get:
   tags:
     - Roles
-  summary: Get roles
-  operationId: getRoles
+  summary: Get user roles from the module
+  operationId: getUserRoles
   description: Endpoint for getting user roles from slack module.
   responses:
     '200':
@@ -16,6 +16,6 @@ get:
                 type: object
                 $ref: '#/components/schemas/ModuleRoles'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error

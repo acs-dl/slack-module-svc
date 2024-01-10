@@ -7,6 +7,7 @@ get:
   parameters:
     - $ref: '#/components/parameters/linkParam'
     - $ref: '#/components/parameters/usernameParam'
+    - $ref: '#/components/parameters/authParam'
   responses:
     '200':
       description: Success
@@ -19,6 +20,6 @@ get:
                 type: object
                 $ref: '#/components/schemas/Roles'
     '400':
-      description: Bad request.
+      description: Bad request
     '500':
-      description: Internal server error.
+      description: Internal server error
