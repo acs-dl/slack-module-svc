@@ -28,12 +28,12 @@ func GetConversations(queue *pqueue.PriorityQueue, function any, priority int) (
 func processConversationItem(item *pqueue.QueueItem) ([]data.Conversation, error) {
 	err := item.Response.Error
 	if err != nil {
-		return nil, errors.Wrap(err, "some error while getting chats from api")
+		return nil, errors.Wrap(err, "some error while getting conversations from api")
 	}
 
 	conversations, ok := item.Response.Value.([]data.Conversation)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return conversations, nil
@@ -47,12 +47,12 @@ func GetUsersWithChannels(queue *pqueue.PriorityQueue, function any, args []any,
 
 	err = item.Response.Error
 	if err != nil {
-		return nil, errors.Wrap(err, "some error while getting chat from api")
+		return nil, errors.Wrap(err, "some error while getting conversation from api")
 	}
 
 	usersWithChannels, ok := item.Response.Value.(map[string][]string)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return usersWithChannels, nil
@@ -71,7 +71,7 @@ func GetUser(queue *pqueue.PriorityQueue, function any, args []any, priority int
 
 	user, ok := item.Response.Value.(*data.User)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return user, nil
@@ -91,7 +91,7 @@ func GetUsers(queue *pqueue.PriorityQueue, function any, args []any, priority in
 
 	user, ok := item.Response.Value.([]slackGo.User)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return user, nil
@@ -111,7 +111,7 @@ func Users(queue *pqueue.PriorityQueue, function any, args []any, priority int) 
 
 	user, ok := item.Response.Value.([]data.User)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return user, nil
@@ -125,12 +125,12 @@ func GetWorkspaceName(queue *pqueue.PriorityQueue, function any, args []any, pri
 
 	err = item.Response.Error
 	if err != nil {
-		return "", errors.Wrap(err, "some error while getting chat from api")
+		return "", errors.Wrap(err, "some error while getting conversation from api")
 	}
 
 	workspaceName, ok := item.Response.Value.(string)
 	if !ok {
-		return "", errors.Wrap(err, "wrong response type while getting chat from api")
+		return "", errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return workspaceName, nil
@@ -144,12 +144,12 @@ func GetConversationsForUser(queue *pqueue.PriorityQueue, function any, args []a
 
 	err = item.Response.Error
 	if err != nil {
-		return nil, errors.Wrap(err, "some error while getting chat from api")
+		return nil, errors.Wrap(err, "some error while getting conversation from api")
 	}
 
 	conversations, ok := item.Response.Value.([]slackGo.Channel)
 	if !ok {
-		return nil, errors.Wrap(err, "wrong response type while getting chat from api")
+		return nil, errors.Wrap(err, "wrong response type while getting conversation from api")
 	}
 
 	return conversations, nil
@@ -174,17 +174,17 @@ func GetBillableInfo(queue *pqueue.PriorityQueue, function any, priority int) (m
 	return billableInfo, nil
 }
 
-func RetrieveChat(chats []data.Conversation, msg data.ModulePayload) *data.Conversation {
-	if len(chats) == 1 {
-		return &chats[0]
+func RetrieveConversations(conversations []data.Conversation, msg data.ModulePayload) *data.Conversation {
+	if len(conversations) == 1 {
+		return &conversations[0]
 	}
 
-	for i := range chats {
-		if chats[i].Title != msg.Link {
+	for i := range conversations {
+		if conversations[i].Title != msg.Link {
 			continue
 		}
 
-		return &chats[i]
+		return &conversations[i]
 	}
 
 	return nil

@@ -9,13 +9,13 @@ import (
 func (s *client) GetConversationUsers(conversation data.Conversation) ([]data.User, error) {
 	users, err := s.getAllUsersFromConversation(conversation.Id)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get all users from chat")
+		return nil, errors.Wrap(err, "failed to get all users from conversation")
 	}
 
 	return users, nil
 }
 
-func (s *client) getAllUsersFromConversation(chatId string) ([]data.User, error) {
+func (s *client) getAllUsersFromConversation(conversationId string) ([]data.User, error) {
 
 	//TODO: maybe youse priority queue?
 	var users []data.User
@@ -24,7 +24,7 @@ func (s *client) getAllUsersFromConversation(chatId string) ([]data.User, error)
 	for {
 		// Get the list of users in the channel
 		params := &slack.GetUsersInConversationParameters{
-			ChannelID: chatId,
+			ChannelID: conversationId,
 			Cursor:    cursor,
 		}
 		userIDs, nextCursor, err := s.botClient.GetUsersInConversation(params)

@@ -7,12 +7,12 @@ import (
 )
 
 func (s *client) GetConversations() ([]data.Conversation, error) {
-	chats, err := s.getConversations(func(_ slack.Channel) bool {
+	conversations, err := s.getConversations(func(_ slack.Channel) bool {
 		return true
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get conversations")
 	}
 
-	return chats, nil
+	return conversations, nil
 }

@@ -10,16 +10,16 @@ import (
 )
 
 func (s *client) GetConversationsByLink(title string) ([]data.Conversation, error) {
-	chats, err := s.getConversations(func(ch slack.Channel) bool {
+	conversations, err := s.getConversations(func(ch slack.Channel) bool {
 		return ch.Name == title
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{
-			"chat_title": title,
+			"conversation_title": title,
 		})
 	}
 
-	return chats, nil
+	return conversations, nil
 }
 
 func (s *client) getConversations(predicate func(slack.Channel) bool) ([]data.Conversation, error) {

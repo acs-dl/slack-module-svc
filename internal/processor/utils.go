@@ -30,12 +30,12 @@ func (p *processor) getBillableInfo() (map[string]bool, error) {
 	return helpers.GetBillableInfo(p.pqueues.UserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
 }
 
-func (p *processor) getUsersForConversation(chat data.Conversation) ([]data.User, error) {
-	users, err := helpers.Users(p.pqueues.BotPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
+func (p *processor) getUsersForConversation(conversation data.Conversation) ([]data.User, error) {
+	users, err := helpers.Users(p.pqueues.BotPQueue, any(p.client.GetConversationUsers), []any{any(conversation)}, pqueue.LowPriority)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get users for chat", logan.F{
-			"chat_id":    chat.Id,
-			"chat_title": chat.Title,
+		return nil, errors.Wrap(err, "failed to get users for conversation", logan.F{
+			"conversation_id":    conversation.Id,
+			"conversation_title": conversation.Title,
 		})
 	}
 
