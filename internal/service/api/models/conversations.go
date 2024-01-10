@@ -13,7 +13,7 @@ func NewChatModel(chat data.Conversation) resources.Conversation {
 		},
 		Attributes: resources.ConversationAttributes{
 			Title:         chat.Title,
-			SubmoduleId:   &chat.Id,
+			Id:            chat.Id,
 			MembersAmount: chat.MembersAmount,
 		},
 	}

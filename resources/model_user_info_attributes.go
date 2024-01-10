@@ -5,10 +5,10 @@
 package resources
 
 type UserInfoAttributes struct {
-	// name from slack account
+	// full name from slack account
 	Name string `json:"name"`
 	// id from slack
-	SlackId *string `json:"slack_id,omitempty"`
+	SlackId string `json:"slack_id"`
 	// username from slack
-	Username *string `json:"username,omitempty"`
+	Username string `json:"username"`
 }
