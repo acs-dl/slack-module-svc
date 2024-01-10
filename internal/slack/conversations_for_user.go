@@ -6,8 +6,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversationsForUser(userId string) ([]slack.Channel, error) {
-	channels, _, err := s.botClient.GetConversationsForUser(
+func (c *client) GetConversationsForUser(userId string) ([]slack.Channel, error) {
+	channels, _, err := c.botClient.GetConversationsForUser(
 		&slack.GetConversationsForUserParameters{
 			UserID: userId,
 		},

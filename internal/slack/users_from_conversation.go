@@ -6,8 +6,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversationUsers(conversation data.Conversation) ([]data.User, error) {
-	users, err := s.getAllUsersFromConversation(conversation.Id)
+func (c *client) GetConversationUsers(conversation data.Conversation) ([]data.User, error) {
+	users, err := c.getAllUsersFromConversation(conversation.Id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get all users from conversation")
 	}
@@ -15,7 +15,7 @@ func (s *client) GetConversationUsers(conversation data.Conversation) ([]data.Us
 	return users, nil
 }
 
-func (s *client) getAllUsersFromConversation(conversationId string) ([]data.User, error) {
+func (c *client) getAllUsersFromConversation(conversationId string) ([]data.User, error) {
 
 	//TODO: maybe youse priority queue?
 	var users []data.User
@@ -27,14 +27,14 @@ func (s *client) getAllUsersFromConversation(conversationId string) ([]data.User
 			ChannelID: conversationId,
 			Cursor:    cursor,
 		}
-		userIDs, nextCursor, err := s.botClient.GetUsersInConversation(params)
+		userIDs, nextCursor, err := c.botClient.GetUsersInConversation(params)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get users in conversation")
 		}
 
 		// Getting information about each user
 		for _, userID := range userIDs {
-			user, err := s.botClient.GetUserInfo(userID)
+			user, err := c.botClient.GetUserInfo(userID)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to get user info")
 			}
@@ -42,7 +42,7 @@ func (s *client) getAllUsersFromConversation(conversationId string) ([]data.User
 				Username:    &user.Name,
 				Realname:    &user.RealName,
 				SlackId:     user.ID,
-				AccessLevel: s.userStatus(user),
+				AccessLevel: c.userStatus(user),
 			})
 		}
 
@@ -56,7 +56,7 @@ func (s *client) getAllUsersFromConversation(conversationId string) ([]data.User
 	return users, nil
 }
 
-func (s *client) userStatus(user *slack.User) string {
+func (c *client) userStatus(user *slack.User) string {
 	switch {
 	case user.IsAdmin:
 		return "admin"

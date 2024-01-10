@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"fmt"
+
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	slackGo "github.com/slack-go/slack"
@@ -13,20 +15,7 @@ func GetConversationsByLink(queue *pqueue.PriorityQueue, function any, args []an
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
 	}
 
-	return processConversationItem(item)
-}
-
-func GetConversations(queue *pqueue.PriorityQueue, function any, priority int) ([]data.Conversation, error) {
-	item, err := AddFunctionInPQueue(queue, function, []any{}, priority)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to add function in pqueue")
-	}
-
-	return processConversationItem(item)
-}
-
-func processConversationItem(item *pqueue.QueueItem) ([]data.Conversation, error) {
-	err := item.Response.Error
+	err = item.Response.Error
 	if err != nil {
 		return nil, errors.Wrap(err, "some error while getting conversations from api")
 	}
@@ -37,6 +26,29 @@ func processConversationItem(item *pqueue.QueueItem) ([]data.Conversation, error
 	}
 
 	return conversations, nil
+}
+
+func GetConversations(queue *pqueue.PriorityQueue, function any, args []any, priority int) ([]slackGo.Channel, string, error) {
+	item, err := AddFunctionInPQueue(queue, function, args, priority)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to add function in pqueue")
+	}
+
+	err = item.Response.Error
+	if err != nil {
+		return nil, "", errors.Wrap(err, "some error while getting conversations from api")
+	}
+
+	// response, ok := item.Response.Value.()
+	// if !ok {
+	// 	return nil, "", errors.Wrap(err, "wrong response type while getting conversation from api")
+	// }
+
+	// return &response, nil
+
+	fmt.Println(item.Response.Value)
+
+	return nil, "", nil
 }
 
 func GetUsersWithChannels(queue *pqueue.PriorityQueue, function any, args []any, priority int) (map[string][]string, error) {

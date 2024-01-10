@@ -4,8 +4,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetWorkspaceName() (string, error) {
-	team, err := s.botClient.GetTeamInfo()
+func (c *client) GetWorkspaceName() (string, error) {
+	team, err := c.botClient.GetTeamInfo()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to retrieve team info")
 	}

@@ -46,7 +46,7 @@ func New(cfg config.Config, ctx context.Context) Worker {
 		runnerDelay:   cfg.Runners().Worker,
 		estimatedTime: time.Duration(0),
 
-		client:  slack.New(cfg),
+		client:  slack.New(cfg, ctx),
 		pqueues: pqueue.PQueuesInstance(ctx),
 	}
 }
@@ -69,7 +69,7 @@ func (w *worker) ProcessPermissions(_ context.Context) error {
 	w.logger.Info("started processing permissions for all conversations")
 	startTime := time.Now()
 
-	conversations, err := w.getConversations()
+	conversations, err := w.client.GetConversations()
 	if err != nil {
 		return errors.Wrap(err, "failed to get all conversations from slack api")
 	}

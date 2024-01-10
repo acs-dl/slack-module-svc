@@ -7,14 +7,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (w *worker) getConversations() ([]data.Conversation, error) {
-	return helpers.GetConversations(
-		w.pqueues.BotPQueue,
-		any(w.client.GetConversations),
-		pqueue.LowPriority,
-	)
-}
-
 func (w *worker) getConversationsByLink(link string) ([]data.Conversation, error) {
 	return helpers.GetConversationsByLink(
 		w.pqueues.BotPQueue,

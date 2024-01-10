@@ -4,8 +4,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetBillableInfo() (map[string]bool, error) {
-	billableInfo, err := s.userClient.GetBillableInfoForTeam()
+func (c *client) GetBillableInfo() (map[string]bool, error) {
+	billableInfo, err := c.userClient.GetBillableInfoForTeam()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get billable info for team")
 	}
