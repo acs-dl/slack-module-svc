@@ -1,6 +1,5 @@
 in: query
 name: 'filter[link]'
-required: true
 schema:
   type: string
   description: >-

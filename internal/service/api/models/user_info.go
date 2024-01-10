@@ -9,8 +9,8 @@ func NewUserInfoModel(user data.User, id int) resources.UserInfo {
 	return resources.UserInfo{
 		Key: resources.NewKeyInt64(int64(id), resources.USER),
 		Attributes: resources.UserInfoAttributes{
-			Username: user.Username,
-			SlackId:  &user.SlackId,
+			Username: *user.Username,
+			SlackId:  user.SlackId,
 			Name:     *user.Realname,
 		},
 	}

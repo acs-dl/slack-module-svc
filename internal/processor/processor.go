@@ -21,8 +21,8 @@ const (
 )
 
 type Processor interface {
-	HandleGetUsersAction(msg data.ModulePayload) error
 	HandleVerifyUserAction(msg data.ModulePayload) (string, error)
+	RefreshByConversations(requestId string, conversations ...data.Conversation) error
 }
 
 type processor struct {

@@ -21,7 +21,7 @@ allOf:
           link:
             type: string
             description: Module url
-            example: "https://app.slack.com/client/TAAJ203M0/CAA20G40Z"
+            example: "http://localhost:9000/integrations/slack"
           topic:
             type: string
             description: Module topic for sender and others
@@ -35,6 +35,6 @@ allOf:
             description: Module name to use in FE
             example: "Slack"
           is_module:
-            type: bool
+            type: boolean
             description: indicates whether module (gitlab, telegram etc.) or service (unverified, role etc.)
             example: true

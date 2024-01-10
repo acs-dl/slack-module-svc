@@ -1,13 +1,11 @@
-get:
+post:
   tags:
-    - Roles
-  summary: Get available roles for user
-  operationId: getAvailableRoles
-  description: Endpoint for getting all available roles (permission to set) from slack module to pass them in FE.
+    - Estimated time
+  summary: Get estimated time to refresh the module
+  operationId: getEstimatedTime
   parameters:
-    - $ref: '#/components/parameters/linkParam'
-    - $ref: '#/components/parameters/usernameParam'
     - $ref: '#/components/parameters/authParam'
+  description: Endpoint for getting the estimated time to refresh the Slack module.
   responses:
     '200':
       description: Success
@@ -18,7 +16,7 @@ get:
             properties:
               data:
                 type: object
-                $ref: '#/components/schemas/Roles'
+                $ref: '#/components/schemas/EstimatedTime'
     '400':
       description: Bad request
     '401':

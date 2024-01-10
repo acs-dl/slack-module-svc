@@ -11,7 +11,8 @@ allOf:
           - module
         properties:
           user_id:
-            type: int64
+            type: integer
+            format: int64
             description: user id from identity module, if user is not verified - null
             example: "666"
           created_at:
@@ -33,8 +34,8 @@ allOf:
           submodule:
             type: string
             description: submodule name
-            example: "slack/general"
+            example: "general"
           access_level:
             type: string
             description: submodule access level
-            example: "push"
+            example: "admin"

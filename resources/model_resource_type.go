@@ -12,7 +12,6 @@ const (
 	ESTIMATED_TIME  ResourceType = "estimated_time"
 	LINKS           ResourceType = "links"
 	MODULES         ResourceType = "modules"
-	REQUESTS        ResourceType = "requests"
 	ROLE            ResourceType = "role"
 	ROLES           ResourceType = "roles"
 	USER            ResourceType = "user"
