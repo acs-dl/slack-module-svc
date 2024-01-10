@@ -1,7 +1,7 @@
 get:
   tags:
     - Permissions
-  summary: Get users permissions from the Slack module
+  summary: Get users permissions
   operationId: getPermissions
   description: Endpoint for getting permissions from the Slack module.
   parameters:

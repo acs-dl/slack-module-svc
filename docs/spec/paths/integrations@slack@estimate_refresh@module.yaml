@@ -1,7 +1,7 @@
 post:
   tags:
     - Estimated time
-  summary: Get estimated time it takes to refresh the Slack module
+  summary: Get estimated time to refresh the module
   operationId: getEstimatedTime
   parameters:
     - $ref: '#/components/parameters/authParam'

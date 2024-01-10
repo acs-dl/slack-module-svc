@@ -4,4 +4,4 @@ required: true
 schema:
   type: string
   description: 'JWT token'
-  example: 'eyJhbGci......G8-doGGM'
+  example: 'Bearer eyJhbGci......G8-doGGM'

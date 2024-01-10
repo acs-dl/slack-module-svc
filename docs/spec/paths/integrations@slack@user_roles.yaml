@@ -1,7 +1,7 @@
 get:
   tags:
     - Roles
-  summary: Get user roles from the module
+  summary: Get user roles
   operationId: getUserRoles
   description: Endpoint for getting user roles from slack module.
   responses:

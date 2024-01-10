@@ -1,7 +1,7 @@
 post:
   tags:
     - Estimated time
-  summary: Get estimated time it takes to refresh certain submodules of the Slack module
+  summary: Get estimated time to refresh submodules
   operationId: getEstimatedTimeSubmodules
   description: Endpoint for getting the estimated time to refresh certain submodules of the Slack module.
   parameters:
