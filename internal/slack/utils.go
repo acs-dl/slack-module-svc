@@ -40,7 +40,6 @@ func getFunctionName(function interface{}) string {
 
 func getFunctionSignature(function interface{}, args []interface{}) string {
 	signatureParts := []string{getFunctionName(function), "("}
-	signatureParts = append(signatureParts)
 
 	for _, arg := range args {
 		signatureParts = append(signatureParts, fmt.Sprintf("%v", arg))

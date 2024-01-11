@@ -20,42 +20,6 @@ func (c *client) GetConversationsByLink(title string, priority int) ([]data.Conv
 	return conversations, nil
 }
 
-func (c *client) getConversationsWrapper(params slack.GetConversationsParameters, priority int) ([]slack.Channel, string, error) {
-	type response struct {
-		conversation []slack.Channel
-		nextCursor   string
-	}
-
-	wrapperFunc := func() (response, error) {
-		conversations, nextCursor, err := c.botClient.GetConversations(&params)
-		return response{conversations, nextCursor}, err
-	}
-
-	item, err := addFunctionInPQueue(
-		c.pqueues.BotPQueue,
-		wrapperFunc,
-		[]any{},
-		priority,
-	)
-	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to add function in pqueue")
-	}
-
-	err = item.Response.Error
-	if err != nil {
-		return nil, "", errors.Wrap(err, "failed to get conversations from api", logan.F{
-			"params": params,
-		})
-	}
-
-	result, ok := item.Response.Value.(response)
-	if !ok {
-		return nil, "", errors.New("failed to convert response")
-	}
-
-	return result.conversation, result.nextCursor, err
-}
-
 func (c *client) getConversations(predicate func(slack.Channel) bool, priority int) ([]data.Conversation, error) {
 	var allConversations []data.Conversation
 	limit := 20
@@ -67,9 +31,17 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			Cursor: cursor,
 		}
 
-		conversations, nextCursor, err := c.getConversationsWrapper(params, priority)
+		response, err := c.paginationWrapper(func() (response, error) {
+			conversations, nextCursor, err := c.botClient.GetConversations(&params)
+			return response{conversations, nextCursor}, err
+		}, priority)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get conversations")
+		}
+
+		conversations, ok := response.payload.([]slack.Channel)
+		if !ok {
+			return nil, errors.New("failed to convert response to conversations")
 		}
 
 		for _, conversation := range conversations {
@@ -82,11 +54,11 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			}
 		}
 
-		if nextCursor == "" {
+		if response.nextCursor == "" {
 			break
 		}
 
-		cursor = nextCursor
+		cursor = response.nextCursor
 	}
 
 	return allConversations, nil
