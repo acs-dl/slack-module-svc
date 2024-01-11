@@ -79,12 +79,13 @@ func (p *processor) processConversation(
 			Bill:        bill,
 		}
 
-		if err := p.processUser(user, permission, &usersToUnverified); err != nil {
+		if err := p.processUser(&user, permission); err != nil {
 			return errors.Wrap(err, "failed to process user", logan.F{
 				"slack_id": user.SlackId,
 				"action":   requestId,
 			})
 		}
+		usersToUnverified = append(usersToUnverified, user)
 	}
 
 	if err := p.sendUsers(requestId, usersToUnverified); err != nil {
@@ -95,27 +96,20 @@ func (p *processor) processConversation(
 }
 
 func (p *processor) processUser(
-	user data.User,
+	user *data.User,
 	permission data.Permission,
-	usersToUnverified *[]data.User,
 ) error {
 	err := p.managerQ.Transaction(func() error {
-		if err := p.managerQ.Users.Upsert(user); err != nil {
+		resultId, err := p.managerQ.Users.Upsert(*user)
+		if err != nil {
 			return errors.Wrap(err, "failed to upsert user")
 		}
-
-		dbUser, err := p.getUserFromDbBySlackId(user.SlackId)
-		if err != nil {
-			return errors.Wrap(err, "failed to get user from db")
-		}
-
-		user.Id = dbUser.Id
-		*usersToUnverified = append(*usersToUnverified, user)
 
 		if err := p.managerQ.Permissions.Upsert(permission); err != nil {
 			return errors.Wrap(err, "failed to upsert permission")
 		}
 
+		user.Id = resultId
 		return nil
 	})
 

@@ -9,7 +9,7 @@ import (
 type Users interface {
 	New() Users
 
-	Upsert(user User) error
+	Upsert(user User) (*int64, error)
 	Delete() error
 	Select() ([]User, error)
 	Get() (*User, error)

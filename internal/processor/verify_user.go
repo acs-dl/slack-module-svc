@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/acs-dl/slack-module-svc/internal/data"
+	"github.com/acs-dl/slack-module-svc/internal/pqueue"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -20,7 +21,7 @@ func (p *processor) parseUserID(userID string) (int64, error) {
 
 func (p *processor) upsertUser(user *data.User, userID int64) error {
 	user.Id = &userID
-	if err := p.managerQ.Users.Upsert(*user); err != nil {
+	if _, err := p.managerQ.Users.Upsert(*user); err != nil {
 		return errors.Wrap(err, "failed to upsert user", logan.F{
 			"user_id": userID,
 		})
@@ -53,7 +54,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, errors.New("no user was found")
 	}
 
-	user, err = p.getUser(user.SlackId)
+	user, err = p.client.GetUser(user.SlackId, pqueue.LowPriority)
 	if err != nil {
 		return data.FAILURE, errors.Wrap(err, "failed to get user by id from Slack API", logan.F{
 			"slack_id": user.SlackId,
