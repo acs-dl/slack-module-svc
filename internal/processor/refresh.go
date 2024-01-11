@@ -59,9 +59,30 @@ func (p *processor) processConversation(
 
 	usersToUnverified := make([]data.User, 0)
 	for _, user := range users {
-		if err := p.processUser(user, requestId, workspaceName, conversation, &usersToUnverified, billableInfo); err != nil {
+		bill, ok := billableInfo[user.SlackId]
+		if !ok {
+			return errors.From(errors.New("failed to get billable info for user"), logan.F{
+				"slack_id": user.SlackId,
+			})
+		}
+
+		user.CreatedAt = time.Now()
+		permission := data.Permission{
+			RequestId:   requestId,
+			WorkSpace:   workspaceName,
+			SlackId:     user.SlackId,
+			Username:    *user.Username,
+			AccessLevel: user.AccessLevel,
+			Link:        conversation.Title,
+			CreatedAt:   user.CreatedAt,
+			SubmoduleId: conversation.Id,
+			Bill:        bill,
+		}
+
+		if err := p.processUser(user, permission, &usersToUnverified); err != nil {
 			return errors.Wrap(err, "failed to process user", logan.F{
 				"slack_id": user.SlackId,
+				"action":   requestId,
 			})
 		}
 	}
@@ -75,56 +96,28 @@ func (p *processor) processConversation(
 
 func (p *processor) processUser(
 	user data.User,
-	requestId string,
-	workspaceName string,
-	conversation data.Conversation,
+	permission data.Permission,
 	usersToUnverified *[]data.User,
-	billableInfo map[string]bool,
 ) error {
-	user.CreatedAt = time.Now()
-	return p.managerQ.Transaction(func() error {
+	err := p.managerQ.Transaction(func() error {
 		if err := p.managerQ.Users.Upsert(user); err != nil {
-			return errors.Wrap(err, "failed to upsert user", logan.F{
-				"action":   requestId,
-				"slack_id": user.SlackId,
-			})
+			return errors.Wrap(err, "failed to upsert user")
 		}
 
 		dbUser, err := p.getUserFromDbBySlackId(user.SlackId)
 		if err != nil {
-			return errors.Wrap(err, "failed to get user from db for message action", logan.F{
-				"action":   requestId,
-				"slack_id": user.SlackId,
-			})
+			return errors.Wrap(err, "failed to get user from db")
 		}
 
 		user.Id = dbUser.Id
 		*usersToUnverified = append(*usersToUnverified, user)
 
-		bill, ok := billableInfo[user.SlackId]
-		if !ok {
-			return errors.From(errors.New("failed to get billable info for user"), logan.F{
-				"slack_id": user.SlackId,
-			})
-		}
-
-		if err := p.managerQ.Permissions.Upsert(data.Permission{
-			RequestId:   requestId,
-			WorkSpace:   workspaceName,
-			SlackId:     user.SlackId,
-			Username:    *user.Username,
-			AccessLevel: user.AccessLevel,
-			Link:        conversation.Title,
-			CreatedAt:   user.CreatedAt,
-			SubmoduleId: conversation.Id,
-			Bill:        bill,
-		}); err != nil {
-			return errors.Wrap(err, "failed to upsert permission", logan.F{
-				"action":   requestId,
-				"slack_id": user.SlackId,
-			})
+		if err := p.managerQ.Permissions.Upsert(permission); err != nil {
+			return errors.Wrap(err, "failed to upsert permission")
 		}
 
 		return nil
 	})
+
+	return errors.Wrap(err, "transaction failed")
 }
