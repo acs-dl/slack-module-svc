@@ -85,8 +85,12 @@ func (q UsersQ) Upsert(user data.User) (*int64, error) {
 
 	var response []data.User
 	err := q.db.Select(&response, query)
-	if len(response) == 0 {
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to get upsert response")
+	}
+
+	if len(response) == 0 {
+		return nil, errors.New("empty upsert response")
 	}
 
 	return response[0].Id, nil
