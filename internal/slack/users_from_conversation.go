@@ -67,20 +67,9 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 		}
 
 		for _, userID := range userIDs {
-			item, err := addFunctionInPQueue(c.pqueues.BotPQueue, c.botClient.GetUserInfo, []any{userID}, priority)
+			user, err := c.getUser(userID, priority)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to add function in pqueue")
-			}
-
-			if err = item.Response.Error; err != nil {
-				return nil, errors.Wrap(err, "failed to get user info from api", logan.F{
-					"user_id": userID,
-				})
-			}
-
-			user, ok := item.Response.Value.(*slack.User)
-			if !ok {
-				return nil, errors.New("failed to convert response")
+				return nil, errors.Wrap(err, "failed to get user from api")
 			}
 
 			users = append(users, data.User{
@@ -98,6 +87,26 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 	}
 
 	return users, nil
+}
+
+func (c *client) getUser(userId string, priority int) (*slack.User, error) {
+	item, err := addFunctionInPQueue(c.pqueues.BotPQueue, c.botClient.GetUserInfo, []any{userId}, priority)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to add function in pqueue")
+	}
+
+	if err = item.Response.Error; err != nil {
+		return nil, errors.Wrap(err, "failed to get user info from api", logan.F{
+			"user_id": userId,
+		})
+	}
+
+	user, ok := item.Response.Value.(*slack.User)
+	if !ok {
+		return nil, errors.New("failed to convert response")
+	}
+
+	return user, err
 }
 
 func (c *client) userStatus(user *slack.User) string {

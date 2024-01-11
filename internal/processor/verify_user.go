@@ -54,7 +54,7 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		return data.FAILURE, errors.New("no user was found")
 	}
 
-	user, err = p.client.GetUser(user.SlackId, pqueue.LowPriority)
+	user, err = p.client.GetUser(user.SlackId, pqueue.NormalPriority)
 	if err != nil {
 		return data.FAILURE, errors.Wrap(err, "failed to get user by id from Slack API", logan.F{
 			"slack_id": user.SlackId,
