@@ -81,7 +81,7 @@ func (q UsersQ) Upsert(user data.User) (*int64, error) {
 	query := sq.Insert(usersTableName).
 		SetMap(clauses).
 		Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...).
-		Suffix("RETURNING id")
+		Suffix("RETURNING *")
 
 	var response []data.User
 	err := q.db.Select(&response, query)
@@ -89,7 +89,7 @@ func (q UsersQ) Upsert(user data.User) (*int64, error) {
 		return nil, errors.Wrap(err, "failed to get upsert response")
 	}
 
-	return response[0].Id, errors.Wrap(err, "failed to insert user")
+	return response[0].Id, nil
 }
 
 func (q UsersQ) Delete() error {

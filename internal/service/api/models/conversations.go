@@ -13,7 +13,7 @@ func NewConversationModel(conversation data.Conversation) resources.Conversation
 		},
 		Attributes: resources.ConversationAttributes{
 			Title:         conversation.Title,
-			SubmoduleId:   &conversation.Id,
+			Id:            conversation.Id,
 			MembersAmount: conversation.MembersAmount,
 		},
 	}
