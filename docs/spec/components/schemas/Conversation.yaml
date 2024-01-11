@@ -11,16 +11,16 @@ allOf:
           - members_amount
           - id
         properties:
-          submodule_id:
+          id:
             type: string
             description: slack channel id
-            example: "666"
+            example: "C06BHKDH069"
           title:
             type: string
             description: slack channel title
-            example: "HELP SLACK API"
+            example: "general"
           members_amount:
             type: integer
             format: int64
             description: slack channel members amount
-            example: "10"
+            example: 10

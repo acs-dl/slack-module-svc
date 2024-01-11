@@ -18,7 +18,7 @@ allOf:
           module_id:
             type: string
             description: user id from module
-            example: 8421495
+            example: U06BHZDSE70
           user_id:
             type: integer
             format: int64
@@ -31,14 +31,14 @@ allOf:
           submodule_id:
             type: string
             description: submodule id to handle submodule with the same title
-            example: 666
+            example: C06BHKDH069
           path:
             type: string
             description: workspace title
-            example: "DL"
+            example: "Distributed Lab"
           access_level:
             type: object
-            description: level of success for workspace
+            description: level of access for workspace
             $ref: "#/components/schemas/AccessLevel"
           bill:
             type: boolean

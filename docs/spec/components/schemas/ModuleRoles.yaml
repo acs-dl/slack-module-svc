@@ -6,5 +6,4 @@ allOf:
     properties:
       attributes:
         type: object
-        additionalProperties:
-          type: string
+        

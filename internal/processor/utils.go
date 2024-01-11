@@ -11,3 +11,49 @@ func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
 		"username": validation.Validate(msg.Username, validation.Required),
 	}.Filter()
 }
+
+func (p *processor) getBillableInfo() (map[string]bool, error) {
+	return helpers.GetBillableInfo(p.pqueues.UserPQueue, any(p.client.GetBillableInfo), pqueue.LowPriority)
+}
+
+func (p *processor) getUsersForConversation(chat data.Conversation) ([]data.User, error) {
+	users, err := helpers.Users(p.pqueues.BotPQueue, any(p.client.GetConversationUsers), []any{any(chat)}, pqueue.LowPriority)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for chat", logan.F{
+			"chat_id":    chat.Id,
+			"chat_title": chat.Title,
+		})
+	}
+
+	return users, nil
+}
+
+func (p *processor) getWorkspaceName() (string, error) {
+	return helpers.GetWorkspaceName(
+		p.pqueues.BotPQueue,
+		any(p.client.GetWorkspaceName),
+		[]any{},
+		pqueue.LowPriority,
+	)
+}
+
+func (p *processor) getUser(slackID string) (*data.User, error) {
+	user, err := helpers.GetUser(p.pqueues.BotPQueue,
+		any(p.client.GetUser),
+		[]any{any(slackID)},
+		pqueue.NormalPriority,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get user from api", logan.F{
+			"slack_id": slackID,
+		})
+	}
+	return user, nil
+}
+
+func (p *processor) validateVerifyUser(msg data.ModulePayload) error {
+	return validation.Errors{
+		"user_id":  validation.Validate(msg.UserId, validation.Required),
+		"username": validation.Validate(msg.Username, validation.Required),
+	}.Filter()
+}

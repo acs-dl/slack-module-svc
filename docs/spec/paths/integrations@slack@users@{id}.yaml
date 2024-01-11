@@ -1,13 +1,17 @@
 get:
   tags:
-    - Roles
-  summary: Get available roles for user
-  operationId: getAvailableRoles
-  description: Endpoint for getting all available roles (permission to set) from slack module to pass them in FE.
+    - Users
+  summary: Get user by Id
+  operationId: getUserById
+  description: Endpoint for getting user by id from the Slack module.
   parameters:
-    - $ref: '#/components/parameters/linkParam'
-    - $ref: '#/components/parameters/usernameParam'
     - $ref: '#/components/parameters/authParam'
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
   responses:
     '200':
       description: Success
@@ -17,8 +21,9 @@ get:
             type: object
             properties:
               data:
-                type: object
-                $ref: '#/components/schemas/Roles'
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
     '400':
       description: Bad request
     '401':

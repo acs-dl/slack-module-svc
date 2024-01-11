@@ -13,7 +13,7 @@ allOf:
         properties:
           link:
             type: string
-            description: link to repository or group
+            description: link to a channel
             example: "We vs. ACS"
           is_exists:
             type: boolean
