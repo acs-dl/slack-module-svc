@@ -11,7 +11,7 @@ import (
 )
 
 type Client interface {
-	GetUser(userId string, priority int) (*data.User, error)
+	GetUser(userId string, priority int) (*slack.User, error)
 	GetUsers(priority int) ([]slack.User, error)
 	GetWorkspaceName(priority int) (string, error)
 	GetBillableInfo(priority int) (map[string]bool, error)

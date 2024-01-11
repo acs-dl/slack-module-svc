@@ -1,13 +1,12 @@
 package slack
 
 import (
-	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (c *client) GetUser(userId string, priority int) (*data.User, error) {
+func (c *client) GetUser(userId string, priority int) (*slack.User, error) {
 	item, err := addFunctionInPQueue(c.pqueues.BotPQueue, c.botClient.GetUserInfo, []any{userId}, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to add function in pqueue")
@@ -24,9 +23,5 @@ func (c *client) GetUser(userId string, priority int) (*data.User, error) {
 		return nil, errors.New("failed to convert response")
 	}
 
-	return &data.User{
-		Username: &user.Name,
-		Realname: &user.RealName,
-		SlackId:  user.ID,
-	}, nil
+	return user, nil
 }
