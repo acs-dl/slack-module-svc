@@ -6,18 +6,15 @@ import (
 )
 
 func (c *client) GetBillableInfo(priority int) (map[string]bool, error) {
-	item, err := addFunctionInPQueue(c.pqueues.UserPQueue, c.userClient.GetBillableInfoForTeam, []any{}, priority)
+	var billableInfo map[string]slack.BillingActive
+	err := doQueueRequest[map[string]slack.BillingActive](QueueParameters{
+		queue:    c.pqueues.UserPQueue,
+		function: c.userClient.GetBillableInfoForTeam,
+		args:     []any{},
+		priority: priority,
+	}, &billableInfo)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to add function in pqueue")
-	}
-
-	if err = item.Response.Error; err != nil {
-		return nil, errors.Wrap(err, "failed to get billable info from api")
-	}
-
-	billableInfo, ok := item.Response.Value.(map[string]slack.BillingActive)
-	if !ok {
-		return nil, errors.New("failed to convert response")
+		return nil, errors.Wrap(err, "failed to get billable info")
 	}
 
 	billableInfoResponse := make(map[string]bool)

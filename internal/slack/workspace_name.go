@@ -6,18 +6,15 @@ import (
 )
 
 func (c *client) GetWorkspaceName(priority int) (string, error) {
-	item, err := addFunctionInPQueue(c.pqueues.BotPQueue, c.botClient.GetTeamInfo, []any{}, priority)
+	var teamInfo *slack.TeamInfo
+	err := doQueueRequest[*slack.TeamInfo](QueueParameters{
+		queue:    c.pqueues.BotPQueue,
+		function: c.botClient.GetTeamInfo,
+		args:     []any{},
+		priority: priority,
+	}, &teamInfo)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to add function in pqueue")
-	}
-
-	if err = item.Response.Error; err != nil {
-		return "", errors.Wrap(err, "failed to get team info from api")
-	}
-
-	teamInfo, ok := item.Response.Value.(*slack.TeamInfo)
-	if !ok {
-		return "", errors.New("failed to convert response")
+		return "", errors.Wrap(err, "failed to get team info")
 	}
 
 	return teamInfo.Name, nil

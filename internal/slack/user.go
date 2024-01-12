@@ -7,20 +7,17 @@ import (
 )
 
 func (c *client) GetUser(userId string, priority int) (*slack.User, error) {
-	item, err := addFunctionInPQueue(c.pqueues.BotPQueue, c.botClient.GetUserInfo, []any{userId}, priority)
+	var user *slack.User
+	err := doQueueRequest[*slack.User](QueueParameters{
+		queue:    c.pqueues.BotPQueue,
+		function: c.botClient.GetUserInfo,
+		args:     []any{userId},
+		priority: priority,
+	}, &user)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to add function in pqueue")
-	}
-
-	if err = item.Response.Error; err != nil {
-		return nil, errors.Wrap(err, "failed to get user info from api", logan.F{
+		return nil, errors.Wrap(err, "failed to get user info", logan.F{
 			"user_id": userId,
 		})
-	}
-
-	user, ok := item.Response.Value.(*slack.User)
-	if !ok {
-		return nil, errors.New("failed to convert response")
 	}
 
 	return user, nil

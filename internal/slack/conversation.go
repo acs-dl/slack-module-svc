@@ -31,15 +31,23 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			Cursor: cursor,
 		}
 
-		response, err := c.paginationWrapper(func() (response, error) {
-			conversations, nextCursor, err := c.botClient.GetConversations(&params)
-			return response{conversations, nextCursor}, err
-		}, priority)
+		var resp response
+		err := doQueueRequest[response](QueueParameters{
+			queue: c.pqueues.BotPQueue,
+			function: func() (response, error) {
+				conversations, nextCursor, err := c.botClient.GetConversations(&params)
+				return response{conversations, nextCursor}, err
+			},
+			args:     []any{},
+			priority: priority,
+		}, &resp)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get conversations")
+			return nil, errors.Wrap(err, "failed to get conversations", logan.F{
+				"params": params,
+			})
 		}
 
-		conversations, ok := response.payload.([]slack.Channel)
+		conversations, ok := resp.payload.([]slack.Channel)
 		if !ok {
 			return nil, errors.New("failed to convert response to conversations")
 		}
@@ -54,11 +62,10 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			}
 		}
 
-		if response.nextCursor == "" {
+		cursor = resp.nextCursor
+		if cursor == "" {
 			break
 		}
-
-		cursor = response.nextCursor
 	}
 
 	return allConversations, nil

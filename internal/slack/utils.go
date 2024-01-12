@@ -11,6 +11,38 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
+type response struct {
+	payload    interface{}
+	nextCursor string
+}
+
+func doQueueRequest[T any](params QueueParameters, value *T) error {
+	item, err := addFunctionInPQueue(params.queue, params.function, params.args, params.priority)
+	if err != nil {
+		return errors.Wrap(err, "failed to add function in pqueue")
+	}
+
+	err = item.Response.Error
+	if err != nil {
+		return errors.Wrap(err, "error while performing API request")
+	}
+
+	result, ok := item.Response.Value.(T)
+	if !ok {
+		return errors.New("wrong response type")
+	}
+
+	*value = result
+	return nil
+}
+
+type QueueParameters struct {
+	queue    *pqueue.PriorityQueue
+	function any
+	args     []any
+	priority int
+}
+
 func addFunctionInPQueue(pq *pqueue.PriorityQueue, function any, functionArgs []any, priority int) (*pqueue.QueueItem, error) {
 	queueItem := &pqueue.QueueItem{
 		Id:       getFunctionSignature(function, functionArgs),
