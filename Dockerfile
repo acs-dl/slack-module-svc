@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as buildbase
+FROM golang:1.21-alpine as buildbase
 
 RUN apk add git build-base
 
@@ -6,8 +6,7 @@ WORKDIR /go/src/github.com/acs-dl/slack-module-svc
 COPY vendor .
 COPY . .
 
-RUN GOOS=linux go build  -o /usr/local/bin/slack_client-module-svc /go/src/github.com/acs-dl/slack_client-module-svc
-
+RUN GOOS=linux go build  -o /usr/local/bin/slack-module-svc /go/src/github.com/acs-dl/slack-module-svc
 
 FROM alpine:3.9
 
