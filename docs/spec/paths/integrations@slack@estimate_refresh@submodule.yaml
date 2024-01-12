@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Estimated time
+  summary: Get estimated time to refresh submodules
+  operationId: getEstimatedTimeSubmodules
+  description: Endpoint for getting the estimated time to refresh certain submodules of the Slack module.
+  parameters:
+    - $ref: '#/components/parameters/authParam'
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/Submodules'
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/EstimatedTime'
+    '400':
+      description: Bad request
+    '401':
+      description: Unauthorized
+    '500':
+      description: Internal server error

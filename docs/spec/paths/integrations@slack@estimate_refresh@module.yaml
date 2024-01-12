@@ -1,0 +1,25 @@
+post:
+  tags:
+    - Estimated time
+  summary: Get estimated time to refresh the module
+  operationId: getEstimatedTime
+  parameters:
+    - $ref: '#/components/parameters/authParam'
+  description: Endpoint for getting the estimated time to refresh the Slack module.
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/EstimatedTime'
+    '400':
+      description: Bad request
+    '401':
+      description: Unauthorized
+    '500':
+      description: Internal server error

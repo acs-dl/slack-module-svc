@@ -1,0 +1,40 @@
+allOf:
+  - $ref: '#/components/schemas/ModuleKey'
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - name
+          - title
+          - topic
+          - link
+          - prefix
+          - is_module
+        properties:
+          name:
+            type: string
+            description: Module name
+            example: "slack"
+          link:
+            type: string
+            description: Module url
+            example: "http://localhost:9000/integrations/slack"
+          topic:
+            type: string
+            description: Module topic for sender and others
+            example: "slack"
+          prefix:
+            type: string
+            description: Module prefix to use in FE
+            example: "https://app.slack.com/"
+          title:
+            type: string
+            description: Module name to use in FE
+            example: "Slack"
+          is_module:
+            type: boolean
+            description: indicates whether module (gitlab, telegram etc.) or service (unverified, role etc.)
+            example: true

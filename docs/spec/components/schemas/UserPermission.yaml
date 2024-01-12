@@ -1,0 +1,46 @@
+allOf:
+  - $ref: "#/components/schemas/UserPermissionKey"
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - link
+          - path
+          - access_level
+        properties:
+          username:
+            type: string
+            description: username from slack
+            example: "velykodnyi"
+          module_id:
+            type: string
+            description: user id from module
+            example: U06BHZDSE70
+          user_id:
+            type: integer
+            format: int64
+            description: user id from identity
+            example: 666
+          link:
+            type: string
+            description: conversation title
+            example: "WE vs. ACS"
+          submodule_id:
+            type: string
+            description: submodule id to handle submodule with the same title
+            example: C06BHKDH069
+          path:
+            type: string
+            description: workspace title
+            example: "Distributed Lab"
+          access_level:
+            type: object
+            description: level of access for workspace
+            $ref: "#/components/schemas/AccessLevel"
+          bill:
+            type: boolean
+            description: is user billable
+            example: 'true'

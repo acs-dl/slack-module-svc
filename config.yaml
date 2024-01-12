@@ -1,0 +1,47 @@
+log:
+  level: debug
+  disable_sentry: true
+
+db:
+  url: db_url
+
+amqp:
+  topic: "slack"
+  unverified: "unverified-svc"
+  orchestrator: "orchestrator"
+  identity: "identity-svc"
+  publisher: "amqp://guest:guest@localhost:5672/" #slack_publisher
+  subscriber: "amqp://guest:guest@localhost:5672/" #slack_receiver
+
+runners:
+  registrar: 10m
+  worker: 60m
+  receiver: 30s
+  sender: 30s
+
+rate_limit:
+  requests_amount: 50 
+  time_limit: 1m
+
+listener:
+  addr: :9000
+
+jwt:
+  secret: "SuPeR SeCrEt PhRaSe"
+  refresh_life: 6h
+  access_life: 10m5s
+
+registrator:
+  outer_url: "http://localhost:80/integrations/orchestrator/modules" #endpoint to register MODULE
+  inner_url: "http://localhost:9000/integrations/slack" #endpoint to MODULE itself
+  topic: "slack" #MODULE topic
+  title: "Slack" #MODULE title
+  prefix: "+"
+  is_module: true
+
+cop:
+  disabled: true
+  endpoint: "http://..."
+  upstream: "http://..."
+  service_name: slack_client-module-svc
+  service_port: 80

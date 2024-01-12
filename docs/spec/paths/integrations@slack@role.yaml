@@ -1,0 +1,23 @@
+get:
+  tags:
+    - Roles
+  summary: Get role by access level
+  operationId: getRole
+  description: Endpoint for getting a specified role from slack module.
+  parameters:
+    - $ref: '#/components/parameters/accessLevelParam'
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/Role'
+    '400':
+      description: Bad request
+    '500':
+      description: Internal server error
