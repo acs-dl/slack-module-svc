@@ -208,6 +208,16 @@ func (q PermissionsQ) FilterByLowerTime(time time.Time) data.Permissions {
 	return q.applyFilter(lowerTime)
 }
 
+func (q PermissionsQ) FilterByWorkspaceNames(workspaces ...string) data.Permissions {
+	equalWorspaces := sq.Eq{permissionsWorkSpaceColumn: workspaces}
+
+	if len(workspaces) == 0 {
+		equalWorspaces = sq.Eq{permissionsWorkSpaceColumn: nil}
+	}
+
+	return q.applyFilter(equalWorspaces)
+}
+
 func removeDuplicateColumn(arr []string) []string {
 	allKeys := make(map[string]bool)
 	var list []string

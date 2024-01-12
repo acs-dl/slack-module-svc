@@ -11,9 +11,10 @@ import (
 type GetPermissionsRequest struct {
 	pgdb.OffsetPageParams
 
-	Link     *string `filter:"link"`
-	UserId   *int64  `filter:"userId"`
-	Username *string `filter:"username"`
+	Link       *string `filter:"link"`
+	UserId     *int64  `filter:"userId"`
+	Username   *string `filter:"username"`
+	ParentLink *string `filter:"parentLink"`
 }
 
 func NewGetPermissionsRequest(r *http.Request) (GetPermissionsRequest, error) {
