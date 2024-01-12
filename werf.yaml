@@ -1,0 +1,45 @@
+configVersion: 1
+project: 'backend'
+---
+image: builder
+from: golang:1.21-alpine
+docker:
+  WORKDIR: /go/src/github.com/acs-dl/slack-module-svc
+git:
+  - add: /
+    to: /go/src/github.com/acs-dl/slack-module-svc
+    stageDependencies:
+      install:
+        - go.mod
+        - go.sum
+      setup:
+        - "**/*"
+shell:
+  beforeInstall:
+    - apk add git build-base
+  install:
+    - git config --global url."https://gitlab-ci-token:{{ env "CI_JOB_TOKEN" }}@gitlab.com/".insteadOf https://gitlab.com/
+    - git config --global url."https://{{ env "CI_JOB_TOKEN" }}@github.com/".insteadOf https://github.com/
+    - go env -w GOPRIVATE=github.com/*,gitlab.com/*
+  setup:
+    - export CGO_ENABLED=1
+    - export GO111MODULE=on
+    - export GOOS=linux
+    - cd /go/src/github.com/acs-dl/slack-module-svc
+    - go mod tidy
+    - go mod vendor
+    - go build -o /usr/local/bin/slack-module-svc /go/src/github.com/acs-dl/slack-module-svc
+
+---
+image: service
+from: alpine:3.9
+docker:
+  ENTRYPOINT: slack-module-svc
+shell:
+  setup:
+    - apk add --no-cache ca-certificates
+import:
+  - image: builder
+    add: /usr/local/bin/slack-module-svc
+    to: /usr/local/bin/slack-module-svc
+    after: setup

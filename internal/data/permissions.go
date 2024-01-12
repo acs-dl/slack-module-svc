@@ -29,10 +29,11 @@ type Permissions interface {
 	FilterByUsernames(usernames ...string) Permissions
 	FilterByGreaterTime(time time.Time) Permissions
 	FilterByLowerTime(time time.Time) Permissions
+	FilterByUserIds(userIds ...int64) Permissions
+	FilterByWorkspaceNames(workpaces ...string) Permissions
 	SearchBy(search string) Permissions
 
 	WithUsers() Permissions
-	FilterByUserIds(userIds ...int64) Permissions
 
 	Count() Permissions
 	CountWithUsers() Permissions
