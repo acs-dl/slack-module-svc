@@ -63,7 +63,7 @@ func (q UsersQ) New() data.Users {
 	return NewUsersQ(q.db)
 }
 
-func (q UsersQ) Upsert(user data.User) error {
+func (q UsersQ) Upsert(user data.User) (*data.User, error) {
 	if user.Username != nil && *user.Username == "" {
 		user.Username = nil
 	}
@@ -78,9 +78,18 @@ func (q UsersQ) Upsert(user data.User) error {
 	}
 
 	updateStmt, args := updateQuery.MustSql()
-	query := sq.Insert(usersTableName).SetMap(clauses).Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...)
+	query := sq.Insert(usersTableName).
+		SetMap(clauses).
+		Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...).
+		Suffix("RETURNING id")
 
-	return errors.Wrap(q.db.Exec(query), "failed to insert user")
+	var response data.User
+	err := q.db.Get(&response, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to upsert user")
+	}
+
+	return &response, nil
 }
 
 func (q UsersQ) Delete() error {

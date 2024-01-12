@@ -5,34 +5,34 @@ import (
 	"github.com/acs-dl/slack-module-svc/resources"
 )
 
-func NewChatModel(chat data.Conversation) resources.Conversation {
+func NewConversationModel(conversation data.Conversation) resources.Conversation {
 	result := resources.Conversation{
 		Key: resources.Key{
-			ID:   chat.Id,
+			ID:   conversation.Id,
 			Type: resources.CONVERSATIONS,
 		},
 		Attributes: resources.ConversationAttributes{
-			Title:         chat.Title,
-			Id:            chat.Id,
-			MembersAmount: chat.MembersAmount,
+			Title:         conversation.Title,
+			Id:            conversation.Id,
+			MembersAmount: conversation.MembersAmount,
 		},
 	}
 
 	return result
 }
 
-func NewChatResponse(chat data.Conversation) resources.ConversationResponse {
+func NewConversatioResponse(conversation data.Conversation) resources.ConversationResponse {
 	return resources.ConversationResponse{
-		Data: NewChatModel(chat),
+		Data: NewConversationModel(conversation),
 	}
 }
 
-func NewChatListModel(chats []data.Conversation) []resources.Conversation {
-	newChats := make([]resources.Conversation, 0)
+func NewConversationListModel(conversations []data.Conversation) []resources.Conversation {
+	newConversations := make([]resources.Conversation, 0)
 
-	for _, chat := range chats {
-		newChats = append(newChats, NewChatModel(chat))
+	for _, conversation := range conversations {
+		newConversations = append(newConversations, NewConversationModel(conversation))
 	}
 
-	return newChats
+	return newConversations
 }

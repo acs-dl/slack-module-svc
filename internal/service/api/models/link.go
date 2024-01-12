@@ -5,7 +5,7 @@ import (
 	"github.com/acs-dl/slack-module-svc/resources"
 )
 
-func newLink(link string, isExists bool, chats []data.Conversation) resources.Link {
+func newLink(link string, isExists bool, conversations []data.Conversation) resources.Link {
 	return resources.Link{
 		Key: resources.Key{
 			ID:   link,
@@ -14,13 +14,13 @@ func newLink(link string, isExists bool, chats []data.Conversation) resources.Li
 		Attributes: resources.LinkAttributes{
 			Link:       link,
 			IsExists:   isExists,
-			Submodules: NewChatListModel(chats),
+			Submodules: NewConversationListModel(conversations),
 		},
 	}
 }
 
-func NewLinkResponse(link string, isExists bool, chats []data.Conversation) resources.LinkResponse {
+func NewLinkResponse(link string, isExists bool, conversations []data.Conversation) resources.LinkResponse {
 	return resources.LinkResponse{
-		Data: newLink(link, isExists, chats),
+		Data: newLink(link, isExists, conversations),
 	}
 }

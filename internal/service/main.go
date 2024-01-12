@@ -31,7 +31,7 @@ func Run(cfg config.Config) {
 	logger.Info("Starting all available services...")
 
 	stopProcessQueue := make(chan struct{})
-	pqueues := pqueue.NewPQueues()
+	pqueues := pqueue.NewPQueues(logger)
 	go pqueues.BotPQueue.ProcessQueue(cfg.RateLimit().RequestsAmount, cfg.RateLimit().TimeLimit, stopProcessQueue)
 	go pqueues.UserPQueue.ProcessQueue(cfg.RateLimit().RequestsAmount, cfg.RateLimit().TimeLimit, stopProcessQueue)
 	ctx = pqueue.CtxPQueues(&pqueues, ctx)

@@ -26,7 +26,7 @@ allOf:
             example: 666
           link:
             type: string
-            description: chat title
+            description: conversation title
             example: "WE vs. ACS"
           submodule_id:
             type: string

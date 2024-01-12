@@ -1,29 +1,26 @@
 package slack
 
 import (
-	"time"
-
 	"github.com/acs-dl/slack-module-svc/internal/data"
 	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetConversationsByLink(title string) ([]data.Conversation, error) {
-	chats, err := s.getConversations(func(ch slack.Channel) bool {
+func (c *client) GetConversationsByLink(title string, priority int) ([]data.Conversation, error) {
+	conversations, err := c.getConversations(func(ch slack.Channel) bool {
 		return ch.Name == title
-	})
+	}, priority)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find conversation by title", logan.F{
-			"chat_title": title,
+			"conversation_title": title,
 		})
 	}
 
-	return chats, nil
+	return conversations, nil
 }
 
-func (s *client) getConversations(predicate func(slack.Channel) bool) ([]data.Conversation, error) {
-	// TODO: consider creating a wrapper to use a pqueue
+func (c *client) getConversations(predicate func(slack.Channel) bool, priority int) ([]data.Conversation, error) {
 	var allConversations []data.Conversation
 	limit := 20
 	cursor := ""
@@ -34,30 +31,53 @@ func (s *client) getConversations(predicate func(slack.Channel) bool) ([]data.Co
 			Cursor: cursor,
 		}
 
-		channels, nextCursor, err := s.botClient.GetConversations(&params)
+		conversations, cursor, err := c.getConversationsWrapper(&params, priority)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to get conversations")
 		}
 
-		for _, channel := range channels {
-			if predicate(channel) {
+		for _, conversation := range conversations {
+			if predicate(conversation) {
 				allConversations = append(allConversations, data.Conversation{
-					Title:         channel.Name,
-					Id:            channel.ID,
-					MembersAmount: int64(channel.NumMembers),
+					Title:         conversation.Name,
+					Id:            conversation.ID,
+					MembersAmount: int64(conversation.NumMembers),
 				})
 			}
 		}
 
-		if nextCursor == "" {
+		if cursor == "" {
 			break
 		}
-
-		cursor = nextCursor
-
-		// Waiting to avoid exceeding the limit of requests per minute
-		time.Sleep(3 * time.Second)
 	}
 
 	return allConversations, nil
+}
+
+func (c *client) getConversationsWrapper(
+	params *slack.GetConversationsParameters,
+	priority int,
+) ([]slack.Channel, string, error) {
+	type response struct {
+		conversations []slack.Channel
+		nextCursor    string
+	}
+
+	var resp response
+	err := doQueueRequest[response](QueueParameters{
+		queue: c.pqueues.BotPQueue,
+		function: func() (response, error) {
+			conversations, nextCursor, err := c.botClient.GetConversations(params)
+			return response{conversations, nextCursor}, err
+		},
+		args:     []any{},
+		priority: priority,
+	}, &resp)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to get conversations", logan.F{
+			"params": params,
+		})
+	}
+
+	return resp.conversations, resp.nextCursor, nil
 }

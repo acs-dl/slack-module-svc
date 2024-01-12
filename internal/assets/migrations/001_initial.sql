@@ -33,7 +33,8 @@ create table if not exists conversations
     members_amount bigint not null,
 
     unique (id)
-    );
+);
+
 create index if not exists conversations_id_idx on conversations (id);
 
 create table if not exists links
@@ -58,7 +59,7 @@ create table if not exists permissions
     submodule_id text                     not null,
     unique (slack_id, submodule_id),
     foreign key (slack_id) references users (slack_id) on delete cascade on update cascade
-    );
+);
 
 create index if not exists permissions_slackid_idx on permissions (slack_id);
 create index if not exists permissions_submodule_id_idx on permissions (submodule_id);

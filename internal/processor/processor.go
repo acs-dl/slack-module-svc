@@ -38,7 +38,7 @@ type processor struct {
 func New(cfg config.Config, ctx context.Context) Processor {
 	return &processor{
 		log:             cfg.Log().WithField("service", ServiceName),
-		client:          slack.New(cfg),
+		client:          slack.New(cfg, ctx),
 		managerQ:        manager.NewManager(cfg.DB()),
 		sender:          sender.SenderInstance(ctx),
 		pqueues:         pqueue.PQueuesInstance(ctx),

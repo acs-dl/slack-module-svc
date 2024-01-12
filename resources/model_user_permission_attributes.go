@@ -8,7 +8,7 @@ type UserPermissionAttributes struct {
 	AccessLevel AccessLevel `json:"access_level"`
 	// is user billable
 	Bill *bool `json:"bill,omitempty"`
-	// chat title
+	// conversation title
 	Link string `json:"link"`
 	// user id from module
 	ModuleId *string `json:"module_id,omitempty"`

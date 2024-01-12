@@ -1,22 +1,24 @@
 package slack
 
 import (
-	"github.com/acs-dl/slack-module-svc/internal/data"
+	"github.com/slack-go/slack"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetUser(userId string) (*data.User, error) {
-	user, err := s.botClient.GetUserInfo(userId)
+func (c *client) GetUser(userId string, priority int) (*slack.User, error) {
+	var user *slack.User
+	err := doQueueRequest[*slack.User](QueueParameters{
+		queue:    c.pqueues.BotPQueue,
+		function: c.botClient.GetUserInfo,
+		args:     []any{userId},
+		priority: priority,
+	}, &user)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error retrieving user", logan.F{
+		return nil, errors.Wrap(err, "failed to get user info", logan.F{
 			"user_id": userId,
 		})
 	}
 
-	return &data.User{
-		Username: &user.Name,
-		Realname: &user.RealName,
-		SlackId:  user.ID,
-	}, nil
+	return user, nil
 }

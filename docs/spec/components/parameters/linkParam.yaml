@@ -3,5 +3,5 @@ name: 'filter[link]'
 schema:
   type: string
   description: >-
-    Filter by chat title. If link param is not specified, returns all permissions
+    Filter by conversation title. If link param is not specified, returns all permissions
   example: "WE vs. ACS"

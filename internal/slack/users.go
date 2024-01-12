@@ -5,11 +5,17 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (s *client) GetUsers() ([]slack.User, error) {
-	users, err := s.botClient.GetUsers()
+func (c *client) GetUsers(priority int) ([]slack.User, error) {
+	var users *[]slack.User
+	err := doQueueRequest[*[]slack.User](QueueParameters{
+		queue:    c.pqueues.BotPQueue,
+		function: c.botClient.GetUsers,
+		args:     []any{},
+		priority: priority,
+	}, &users)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to retrieve users")
+		return nil, errors.Wrap(err, "failed to get users")
 	}
 
-	return users, nil
+	return *users, nil
 }
