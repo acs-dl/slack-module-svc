@@ -18,13 +18,13 @@ func GetPermissions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userIds []int64
-	if request.UserId != nil {
-		userIds = append(userIds, *request.UserId)
+	var usernames []string
+	if request.Username != nil {
+		usernames = append(usernames, *request.Username)
 	}
 
-	permissionsQ := PermissionsQ(r).WithUsers().FilterByUserIds(userIds...)
-	countPermissionsQ := PermissionsQ(r).CountWithUsers().FilterByUserIds(userIds...)
+	permissionsQ := PermissionsQ(r).WithUsers().FilterByUsernames(usernames...)
+	countPermissionsQ := PermissionsQ(r).CountWithUsers().FilterByUsernames(usernames...)
 
 	if request.Link != nil {
 		permissionsQ = permissionsQ.SearchBy(*request.Link)
