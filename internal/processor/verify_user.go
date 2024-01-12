@@ -9,26 +9,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-func (p *processor) parseUserID(userID string) (int64, error) {
-	userId, err := strconv.ParseInt(userID, 10, 64)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to parse user", logan.F{
-			"user_id": userID,
-		})
-	}
-	return userId, nil
-}
-
-func (p *processor) upsertUser(user *data.User, userID int64) error {
-	user.Id = &userID
-	if _, err := p.managerQ.Users.Upsert(*user); err != nil {
-		return errors.Wrap(err, "failed to upsert user", logan.F{
-			"user_id": userID,
-		})
-	}
-	return nil
-}
-
 func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, error) {
 	p.log.Infof("start handle message action with id `%s`", msg.RequestId)
 
@@ -71,21 +51,30 @@ func (p *processor) HandleVerifyUserAction(msg data.ModulePayload) (string, erro
 		})
 	}
 
-	if err := p.sendUpdateUser(msg.RequestId, data.ModulePayload{
-		RequestId: msg.RequestId,
-		UserId:    msg.UserId,
-		Username:  msg.Username,
-		Realname:  msg.Realname,
-		Action:    UpdateSlackAction,
-		SlackId:   msg.SlackId,
-	}); err != nil {
-		return data.FAILURE, errors.Wrap(err, "failed to publish users")
-	}
-
 	if err := p.SendDeleteUser(msg.RequestId, *user); err != nil {
 		return data.FAILURE, errors.Wrap(err, "failed to publish delete user")
 	}
 
 	p.log.Infof("finish handle message action `%s`", msg.RequestId)
 	return data.SUCCESS, nil
+}
+
+func (p *processor) parseUserID(userID string) (int64, error) {
+	userId, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to parse user", logan.F{
+			"user_id": userID,
+		})
+	}
+	return userId, nil
+}
+
+func (p *processor) upsertUser(user *data.User, userID int64) error {
+	user.Id = &userID
+	if _, err := p.managerQ.Users.Upsert(*user); err != nil {
+		return errors.Wrap(err, "failed to upsert user", logan.F{
+			"user_id": userID,
+		})
+	}
+	return nil
 }

@@ -59,27 +59,13 @@ func (p *processor) processConversation(
 
 	usersToUnverified := make([]data.User, 0)
 	for _, user := range users {
-		bill, ok := billableInfo[user.SlackId]
-		if !ok {
-			return errors.From(errors.New("failed to get billable info for user"), logan.F{
-				"slack_id": user.SlackId,
-			})
-		}
-
-		user.CreatedAt = time.Now()
-		permission := data.Permission{
-			RequestId:   requestId,
-			WorkSpace:   workspaceName,
-			SlackId:     user.SlackId,
-			Username:    *user.Username,
-			AccessLevel: user.AccessLevel,
-			Link:        conversation.Title,
-			CreatedAt:   user.CreatedAt,
-			SubmoduleId: conversation.Id,
-			Bill:        bill,
-		}
-
-		if err := p.processUser(&user, permission); err != nil {
+		if err := p.createPermission(
+			billableInfo,
+			&user,
+			requestId,
+			workspaceName,
+			conversation,
+		); err != nil {
 			return errors.Wrap(err, "failed to process user", logan.F{
 				"slack_id": user.SlackId,
 				"action":   requestId,
@@ -95,12 +81,49 @@ func (p *processor) processConversation(
 	return nil
 }
 
+func (p *processor) createPermission(
+	billableInfo map[string]bool,
+	user *data.User,
+	requestId string,
+	workspaceName string,
+	conversation data.Conversation,
+) error {
+	bill, ok := billableInfo[user.SlackId]
+	if !ok {
+		return errors.From(errors.New("failed to get billable info for user"), logan.F{
+			"slack_id": user.SlackId,
+		})
+	}
+
+	user.CreatedAt = time.Now()
+	permission := data.Permission{
+		RequestId:   requestId,
+		WorkSpace:   workspaceName,
+		SlackId:     user.SlackId,
+		Username:    *user.Username,
+		AccessLevel: user.AccessLevel,
+		Link:        conversation.Title,
+		CreatedAt:   user.CreatedAt,
+		SubmoduleId: conversation.Id,
+		Bill:        bill,
+	}
+
+	if err := p.processUser(user, permission); err != nil {
+		return errors.Wrap(err, "failed to process user", logan.F{
+			"slack_id": user.SlackId,
+			"action":   requestId,
+		})
+	}
+
+	return nil
+}
+
 func (p *processor) processUser(
 	user *data.User,
 	permission data.Permission,
 ) error {
 	err := p.managerQ.Transaction(func() error {
-		resultId, err := p.managerQ.Users.Upsert(*user)
+		resultUser, err := p.managerQ.Users.Upsert(*user)
 		if err != nil {
 			return errors.Wrap(err, "failed to upsert user")
 		}
@@ -109,7 +132,7 @@ func (p *processor) processUser(
 			return errors.Wrap(err, "failed to upsert permission")
 		}
 
-		user.Id = resultId
+		user.Id = resultUser.Id
 		return nil
 	})
 

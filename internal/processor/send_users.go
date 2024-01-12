@@ -78,20 +78,3 @@ func (p *processor) buildMessage(uuid string, payload []byte) *message.Message {
 		Payload:  payload,
 	}
 }
-
-func (p *processor) sendUpdateUser(uuid string, msg data.ModulePayload) error {
-	marshaledPayload, err := json.Marshal(msg)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal update slack info")
-	}
-
-	err = p.sender.SendMessageToCustomChannel(p.identityTopic, p.buildMessage(uuid, marshaledPayload))
-	if err != nil {
-		return errors.Wrap(err, "failed to publish users", logan.F{
-			"topic": p.identityTopic,
-		})
-	}
-
-	p.log.Infof("successfully published user to `%s`", p.identityTopic)
-	return nil
-}

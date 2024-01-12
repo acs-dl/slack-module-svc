@@ -63,7 +63,7 @@ func (q UsersQ) New() data.Users {
 	return NewUsersQ(q.db)
 }
 
-func (q UsersQ) Upsert(user data.User) (*int64, error) {
+func (q UsersQ) Upsert(user data.User) (*data.User, error) {
 	if user.Username != nil && *user.Username == "" {
 		user.Username = nil
 	}
@@ -83,7 +83,7 @@ func (q UsersQ) Upsert(user data.User) (*int64, error) {
 		Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...).
 		Suffix("RETURNING *")
 
-	var response []data.User
+	var response []*data.User
 	err := q.db.Select(&response, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to upsert user")
@@ -93,7 +93,7 @@ func (q UsersQ) Upsert(user data.User) (*int64, error) {
 		return nil, errors.New("empty upsert response")
 	}
 
-	return response[0].Id, nil
+	return response[0], nil
 }
 
 func (q UsersQ) Delete() error {

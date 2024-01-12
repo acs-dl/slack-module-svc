@@ -12,6 +12,7 @@ type GetPermissionsRequest struct {
 	pgdb.OffsetPageParams
 
 	Link     *string `filter:"link"`
+	UserId   *int64  `filter:"userId"`
 	Username *string `filter:"username"`
 }
 

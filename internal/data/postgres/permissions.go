@@ -169,11 +169,11 @@ func (q PermissionsQ) Page(pageParams pgdb.OffsetPageParams) data.Permissions {
 }
 
 func (q PermissionsQ) WithUsers() data.Permissions {
-	q.selectBuilder = sq.Select().Columns(data.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...).
+	q.selectBuilder = sq.Select().Columns(removeDuplicateColumn(append(permissionsColumns, usersColumns...))...).
 		From(permissionsTableName).
 		LeftJoin(usersTableName + " ON " + usersSlackIdColumn + " = " + permissionsSlackIdColumn).
 		Where(sq.NotEq{permissionsRequestIdColumn: nil}).
-		GroupBy(data.RemoveDuplicateColumn(append(permissionsColumns, usersColumns...))...)
+		GroupBy(removeDuplicateColumn(append(permissionsColumns, usersColumns...))...)
 
 	return q
 }
@@ -206,4 +206,25 @@ func (q PermissionsQ) FilterByLowerTime(time time.Time) data.Permissions {
 	lowerTime := sq.Lt{permissionsUpdatedAtColumn: time}
 
 	return q.applyFilter(lowerTime)
+}
+
+func removeDuplicateColumn(arr []string) []string {
+	allKeys := make(map[string]bool)
+	var list []string
+
+	for i := range arr {
+		splittedColumName := strings.Split(arr[i], ".")
+		if len(splittedColumName) != 2 {
+			continue
+		}
+
+		columnName := splittedColumName[1] // [0] is table name
+
+		if _, value := allKeys[columnName]; !value {
+			allKeys[columnName] = true
+			list = append(list, arr[i])
+		}
+	}
+
+	return list
 }
