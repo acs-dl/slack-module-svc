@@ -3,9 +3,10 @@ package pqueue
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 	"time"
+
+	"gitlab.com/distributed_lab/logan/v3"
 )
 
 type PriorityQueueInterface interface {
@@ -18,21 +19,23 @@ type PQueues struct {
 	BotPQueue  *PriorityQueue
 }
 
-func NewPQueues() PQueues {
+func NewPQueues(log *logan.Entry) PQueues {
 	return PQueues{
-		UserPQueue: NewPriorityQueue().(*PriorityQueue),
-		BotPQueue:  NewPriorityQueue().(*PriorityQueue),
+		UserPQueue: NewPriorityQueue(log).(*PriorityQueue),
+		BotPQueue:  NewPriorityQueue(log).(*PriorityQueue),
 	}
 }
 
 type PriorityQueue struct {
 	queueArray []*QueueItem
 	queueMap   sync.Map
+	log        *logan.Entry
 }
 
-func NewPriorityQueue() PriorityQueueInterface {
+func NewPriorityQueue(log *logan.Entry) PriorityQueueInterface {
 	return &PriorityQueue{
 		queueArray: make([]*QueueItem, 0),
+		log:        log,
 	}
 }
 
@@ -122,7 +125,7 @@ func (pq *PriorityQueue) getElement(id string) (*QueueItem, error) {
 }
 
 func (pq *PriorityQueue) WaitUntilInvoked(id string) (*QueueItem, error) {
-	log.Printf("waiting until invoked for `%s`", id)
+	pq.log.Infof("waiting until invoked for `%s`", id)
 
 	item, err := pq.getElement(id)
 	if err != nil {
