@@ -11,11 +11,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-type response struct {
-	payload    interface{}
-	nextCursor string
-}
-
 func doQueueRequest[T any](params QueueParameters, value *T) error {
 	item, err := addFunctionInPQueue(params.queue, params.function, params.args, params.priority)
 	if err != nil {

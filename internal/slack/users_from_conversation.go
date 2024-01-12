@@ -26,25 +26,9 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 			Cursor:    cursor,
 		}
 
-		var resp response
-		err := doQueueRequest[response](QueueParameters{
-			queue: c.pqueues.BotPQueue,
-			function: func() (response, error) {
-				users, nextCursor, err := c.botClient.GetUsersInConversation(&params)
-				return response{users, nextCursor}, err
-			},
-			args:     []any{},
-			priority: priority,
-		}, &resp)
+		userIDs, cursor, err := c.getUsersWrapper(&params, priority)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get users in conversation", logan.F{
-				"params": params,
-			})
-		}
-
-		userIDs, ok := resp.payload.([]string)
-		if !ok {
-			return nil, errors.New("failed to convert response to slice of users")
+			return nil, errors.Wrap(err, "failed to get users from conversation")
 		}
 
 		for _, userID := range userIDs {
@@ -61,13 +45,40 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 			})
 		}
 
-		cursor = resp.nextCursor
 		if cursor == "" {
 			break
 		}
 	}
 
 	return users, nil
+}
+
+func (c *client) getUsersWrapper(
+	params *slack.GetUsersInConversationParameters,
+	priority int,
+) ([]string, string, error) {
+	type response struct {
+		userIDs    []string
+		nextCursor string
+	}
+
+	var resp response
+	err := doQueueRequest[response](QueueParameters{
+		queue: c.pqueues.BotPQueue,
+		function: func() (response, error) {
+			users, nextCursor, err := c.botClient.GetUsersInConversation(params)
+			return response{users, nextCursor}, err
+		},
+		args:     []any{},
+		priority: priority,
+	}, &resp)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to get users in conversation", logan.F{
+			"params": params,
+		})
+	}
+
+	return resp.userIDs, resp.nextCursor, nil
 }
 
 func (c *client) userStatus(user *slack.User) string {

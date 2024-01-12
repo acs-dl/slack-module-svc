@@ -81,19 +81,15 @@ func (q UsersQ) Upsert(user data.User) (*data.User, error) {
 	query := sq.Insert(usersTableName).
 		SetMap(clauses).
 		Suffix("ON CONFLICT (slack_id) DO "+updateStmt, args...).
-		Suffix("RETURNING *")
+		Suffix("RETURNING id")
 
-	var response []*data.User
-	err := q.db.Select(&response, query)
+	var response data.User
+	err := q.db.Get(&response, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to upsert user")
 	}
 
-	if len(response) == 0 {
-		return nil, errors.New("empty upsert response")
-	}
-
-	return response[0], nil
+	return &response, nil
 }
 
 func (q UsersQ) Delete() error {

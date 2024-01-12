@@ -31,25 +31,9 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			Cursor: cursor,
 		}
 
-		var resp response
-		err := doQueueRequest[response](QueueParameters{
-			queue: c.pqueues.BotPQueue,
-			function: func() (response, error) {
-				conversations, nextCursor, err := c.botClient.GetConversations(&params)
-				return response{conversations, nextCursor}, err
-			},
-			args:     []any{},
-			priority: priority,
-		}, &resp)
+		conversations, cursor, err := c.getConversationsWrapper(&params, priority)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get conversations", logan.F{
-				"params": params,
-			})
-		}
-
-		conversations, ok := resp.payload.([]slack.Channel)
-		if !ok {
-			return nil, errors.New("failed to convert response to conversations")
+			return nil, errors.Wrap(err, "failed to get conversations")
 		}
 
 		for _, conversation := range conversations {
@@ -62,11 +46,38 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			}
 		}
 
-		cursor = resp.nextCursor
 		if cursor == "" {
 			break
 		}
 	}
 
 	return allConversations, nil
+}
+
+func (c *client) getConversationsWrapper(
+	params *slack.GetConversationsParameters,
+	priority int,
+) ([]slack.Channel, string, error) {
+	type response struct {
+		conversations []slack.Channel
+		nextCursor    string
+	}
+
+	var resp response
+	err := doQueueRequest[response](QueueParameters{
+		queue: c.pqueues.BotPQueue,
+		function: func() (response, error) {
+			conversations, nextCursor, err := c.botClient.GetConversations(params)
+			return response{conversations, nextCursor}, err
+		},
+		args:     []any{},
+		priority: priority,
+	}, &resp)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "failed to get conversations", logan.F{
+			"params": params,
+		})
+	}
+
+	return resp.conversations, resp.nextCursor, nil
 }
