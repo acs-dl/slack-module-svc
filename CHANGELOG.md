@@ -18,11 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config file for Slack
 - Api handlers
 - Docs
+- CI
 
 ### Changed
 
 - Improved logging, wrapped errors
 - Some functions were renamed (particularly under internal/slack)
+- Slack package methods now use pqueue
 
 ### Fixed
 
@@ -31,3 +33,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - `/get_input` and `/users/unverified` endpoints were deleted
+- `helpers` package was removed
