@@ -38,6 +38,7 @@ func (r *router) apiRouter() chi.Router {
 		r.Get("/role", handlers.GetRole)               // comes from orchestrator
 		r.Get("/roles", handlers.GetRolesMap)          // comes from orchestrator
 		r.Get("/user_roles", handlers.GetUserRolesMap) // comes from orchestrator
+		r.Get("/users/{id}", handlers.GetUserById)     // comes from orchestrator
 
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.IsAuthenticated(secret))
@@ -52,7 +53,6 @@ func (r *router) apiRouter() chi.Router {
 			})
 
 			r.Route("/users", func(r chi.Router) {
-				r.Get("/{id}", handlers.GetUserById) // comes from orchestrator
 				r.Get("/", handlers.GetUsers)
 			})
 		})
