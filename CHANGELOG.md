@@ -34,3 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/get_input` and `/users/unverified` endpoints were deleted
 - `helpers` package was removed
+
+[0.1.1]: https://github.com/acs-dl/slack-module-svc/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/acs-dl/slack-module-svc/releases/tag/v0.1.0
