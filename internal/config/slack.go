@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	userTokenRegex = "xoxp-[0-9]{13}-[0-9]{13}-[0-9]{13}-[0-9a-zA-Z]{32}"
-	botTokenRegex  = "xoxb-[0-9]{13}-[0-9]{13}-[0-9a-zA-Z]{24}"
+	userTokenRegex = "xoxp-[0-9]+-[0-9]+-[0-9]+-[0-9a-zA-Z]+"
+	botTokenRegex  = "xoxb-[0-9]+-[0-9]+-[0-9a-zA-Z]+"
 )
 
 type SlackConfig struct {
