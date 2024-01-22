@@ -31,7 +31,7 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			Cursor: cursor,
 		}
 
-		conversations, cursor, err := c.getConversationsWrapper(&params, priority)
+		conversations, nextCursor, err := c.getConversationsWrapper(&params, priority)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get conversations")
 		}
@@ -46,9 +46,10 @@ func (c *client) getConversations(predicate func(slack.Channel) bool, priority i
 			}
 		}
 
-		if cursor == "" {
+		if nextCursor == "" {
 			break
 		}
+		cursor = nextCursor
 	}
 
 	return allConversations, nil
