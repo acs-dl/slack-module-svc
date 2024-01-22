@@ -26,7 +26,7 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 			Cursor:    cursor,
 		}
 
-		userIDs, cursor, err := c.getUsersWrapper(&params, priority)
+		userIDs, nextCursor, err := c.getUsersWrapper(&params, priority)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get users from conversation")
 		}
@@ -45,9 +45,10 @@ func (c *client) getAllUsersFromConversation(conversationId string, priority int
 			})
 		}
 
-		if cursor == "" {
+		if nextCursor == "" {
 			break
 		}
+		cursor = nextCursor
 	}
 
 	return users, nil
