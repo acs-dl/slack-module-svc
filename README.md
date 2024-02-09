@@ -6,7 +6,7 @@ Module for access control for slack.
 
 ## Slack Access Tokens generation rules
 
-To run Slack ACS Module, a pair of tokens is needed - *User OAuth Token* and *User Bot OAuth token*. Follow (this guide from Slack)[https://api.slack.com/tutorials/tracks/getting-a-token] to generate them for your Slack workspace.
+To run Slack ACS Module, a pair of tokens is needed - *User OAuth Token* and *User Bot OAuth token*. Follow [this guide from Slack](https://api.slack.com/tutorials/tracks/getting-a-token) to generate them for your Slack workspace.
 
 Keep in mind that each token has its own scopes that you have to specify once you created a Slack app. See the list of required scopes below.
 
